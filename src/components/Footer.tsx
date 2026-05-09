@@ -1,0 +1,95 @@
+'use client'
+
+import Link from 'next/link'
+import { LogoIcon, MapPinIcon, PhoneIcon, MailIcon } from './Icons'
+
+const serviceLinks = [
+  { label: 'Immigration Law', href: '/immigration-law' },
+  { label: 'Tax Law', href: '/tax-law' },
+  { label: 'Business Law', href: '/business-law' },
+  { label: 'Legal Consultation', href: '/legal-consultation' }
+]
+const companyLinks = [
+  { label: 'About Us', href: '/about-us' },
+  { label: 'How It Works', href: '/how-it-works' },
+  { label: 'Privacy Policy', href: '/privacy-policy' },
+  { label: 'Terms of Service', href: '/terms-of-service' }
+]
+
+export default function Footer({ user }: { user: any }) {
+  const ctaHref = user ? '/chat' : '/register'
+
+  return (
+    <footer className="footer">
+      <div className="footer-grid">
+
+        {/* Brand */}
+        <div>
+          <div className="footer-brand-logo">
+            <LogoIcon style={{ width: 32, height: 32 }} />
+            <div>
+              <div className="nav-logo-name">
+                MS ADVOC<span>ATE</span>
+              </div>
+              <div className="nav-logo-since">SINCE 2023</div>
+            </div>
+          </div>
+          <p className="footer-brand-desc">
+            Expert legal services for expats and remote workers in Germany.
+          </p>
+          <Link href={ctaHref} className="btn-sm">
+            Start Consultation
+          </Link>
+        </div>
+
+        {/* Services */}
+        <div>
+          <h3 className="footer-col-title">Services</h3>
+          <div className="footer-col-links">
+            {serviceLinks.map((item) => (
+              <Link key={item.label} href={item.href}>{item.label}</Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Company */}
+        <div>
+          <h3 className="footer-col-title">Company</h3>
+          <div className="footer-col-links">
+            {companyLinks.map((item) => (
+              <Link key={item.label} href={item.href}>{item.label}</Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Contact */}
+        <div>
+          <h3 className="footer-col-title">Contact</h3>
+          <div className="footer-contact-list">
+            <div className="footer-contact-item">
+              <MapPinIcon style={{ width: 17, height: 17, flexShrink: 0, marginTop: 2 }} />
+              <span>
+                Friedrichstraße 123<br />
+                10117 Berlin, Germany
+              </span>
+            </div>
+            <div className="footer-contact-item">
+              <PhoneIcon style={{ width: 17, height: 17, flexShrink: 0 }} />
+              <a href="tel:+493012345678">+49 30 1234 5678</a>
+            </div>
+            <div className="footer-contact-item">
+              <MailIcon style={{ width: 17, height: 17, flexShrink: 0 }} />
+              <a href="mailto:contact@msadvocate.net">contact@msadvocate.net</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Bottom bar */}
+      <div className="footer-bottom">
+        <p>© 2026 MS Advocate. All rights reserved.</p>
+      </div>
+    </footer>
+  )
+}
