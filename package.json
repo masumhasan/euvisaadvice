@@ -13,11 +13,12 @@
     "@stripe/stripe-js": "^9.4.0",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.103.0",
+    "dotenv": "^17.4.2",
     "next": "16.2.3",
     "quill": "^2.0.3",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "react-quill": "^2.0.0",
+    "react-quill-new": "^3.8.3",
     "stripe": "^22.1.1"
   },
   "devDependencies": {
@@ -31,7 +32,7 @@
     "typescript": "^5"
   },
   "overrides": {
-    "react-quill": {
+    "react-quill-new": {
       "react": "$react",
       "react-dom": "$react-dom"
     }
