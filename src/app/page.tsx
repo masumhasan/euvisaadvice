@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import Navbar from '@/components/Navbar'
+import Footer from '@/components/Footer'
 import { createClient } from '@/lib/supabase/client'
 import {
   LogoIcon,
@@ -119,18 +120,6 @@ const companyLinks = [
   { label: 'Privacy Policy', href: '/privacy-policy' },
   { label: 'Terms of Service', href: '/terms-of-service' }
 ]
-
-import Footer from '@/components/Footer'
-import {
-  LogoIcon,
-  ScalesIcon,
-  DocumentIcon,
-  GlobeIcon,
-  ShieldIcon,
-  MapPinIcon,
-  PhoneIcon,
-  MailIcon,
-} from '@/components/Icons'
 
 /* ─── Page ──────────────────────────────────────────────────── */
 export default function HomePage() {
