@@ -79,8 +79,8 @@ export default function DynamicPage() {
         </div>
 
         {/* Main Content Area */}
-        <div className="dynamic-content-wrap" style={{ maxWidth: '1000px', margin: '-80px auto 0', position: 'relative', zIndex: 10, padding: '0 20px' }}>
-          <div style={{ background: '#fff', padding: '60px', borderRadius: '32px', boxShadow: '0 30px 60px rgba(0,0,0,0.08)', border: '1px solid rgba(0,0,0,0.02)' }}>
+        <div className="dynamic-content-wrap" style={{ maxWidth: '1000px', margin: '-80px auto 0', position: 'relative', zIndex: 10, padding: '0 20px', width: '100%' }}>
+          <div style={{ background: '#fff', padding: '60px 40px', borderRadius: '32px', boxShadow: '0 30px 60px rgba(0,0,0,0.08)', border: '1px solid rgba(0,0,0,0.02)', overflow: 'hidden' }}>
             <div 
               className="rich-text-content"
               dangerouslySetInnerHTML={{ __html: pageData.content_html }} 
@@ -88,6 +88,8 @@ export default function DynamicPage() {
                 lineHeight: '1.8', 
                 fontSize: '17px', 
                 color: '#333',
+                wordBreak: 'break-word',
+                overflowWrap: 'break-word'
               }}
             />
             
