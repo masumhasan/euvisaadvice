@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, FormEvent, KeyboardEvent } from 'react'
 import Link from 'next/link'
+import ReactMarkdown from 'react-markdown'
 import { ScalesIcon } from '@/components/Icons'
 
 /* ── Types ───────────────────────────────────────────────── */
@@ -36,6 +37,78 @@ function SendIcon() {
       <line x1="22" y1="2" x2="11" y2="13" />
       <polygon points="22 2 15 22 11 13 2 9 22 2" />
     </svg>
+  )
+}
+
+/* ── Rich Markdown Renderer (bot messages only) ─────────── */
+function BotMessage({ content }: { content: string }) {
+  return (
+    <ReactMarkdown
+      components={{
+        // Paragraphs
+        p: ({ children }) => (
+          <p style={{ margin: '0 0 10px', lineHeight: 1.65, color: '#1a1a2e' }}>{children}</p>
+        ),
+        // Bold
+        strong: ({ children }) => (
+          <strong style={{ fontWeight: '700', color: '#1a1a2e' }}>{children}</strong>
+        ),
+        // Italic
+        em: ({ children }) => (
+          <em style={{ fontStyle: 'italic', color: '#444' }}>{children}</em>
+        ),
+        // Headings
+        h1: ({ children }) => (
+          <h1 style={{ fontSize: '17px', fontWeight: '700', color: '#1a1a2e', margin: '14px 0 6px', letterSpacing: '-0.01em' }}>{children}</h1>
+        ),
+        h2: ({ children }) => (
+          <h2 style={{ fontSize: '15px', fontWeight: '700', color: '#1a1a2e', margin: '12px 0 6px', letterSpacing: '-0.01em' }}>{children}</h2>
+        ),
+        h3: ({ children }) => (
+          <h3 style={{ fontSize: '13px', fontWeight: '700', color: '#c9a84c', margin: '10px 0 4px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{children}</h3>
+        ),
+        // Bullet list
+        ul: ({ children }) => (
+          <ul style={{ margin: '6px 0 10px', paddingLeft: '20px', listStyleType: 'disc', color: '#1a1a2e' }}>{children}</ul>
+        ),
+        // Numbered list
+        ol: ({ children }) => (
+          <ol style={{ margin: '6px 0 10px', paddingLeft: '20px', color: '#1a1a2e' }}>{children}</ol>
+        ),
+        // List item
+        li: ({ children }) => (
+          <li style={{ marginBottom: '4px', lineHeight: 1.6 }}>{children}</li>
+        ),
+        // Inline code
+        code: ({ children, className }) => {
+          const isBlock = className?.startsWith('language-')
+          if (isBlock) {
+            return (
+              <pre style={{ background: '#f4f3ef', borderRadius: '8px', padding: '12px 14px', overflowX: 'auto', margin: '8px 0' }}>
+                <code style={{ fontFamily: 'monospace', fontSize: '13px', color: '#1a1a2e' }}>{children}</code>
+              </pre>
+            )
+          }
+          return (
+            <code style={{ background: '#f4f3ef', borderRadius: '4px', padding: '2px 6px', fontFamily: 'monospace', fontSize: '13px', color: '#c9a84c' }}>{children}</code>
+          )
+        },
+        // Horizontal rule
+        hr: () => (
+          <hr style={{ border: 'none', borderTop: '1px solid #eee', margin: '12px 0' }} />
+        ),
+        // Blockquote (email content, quoted text)
+        blockquote: ({ children }) => (
+          <blockquote style={{ borderLeft: '3px solid #c9a84c', paddingLeft: '12px', margin: '8px 0', color: '#666', fontStyle: 'italic' }}>{children}</blockquote>
+        ),
+        // Links
+        a: ({ href, children }) => (
+          <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: '#c9a84c', textDecoration: 'underline' }}>{children}</a>
+        ),
+      }}
+    >
+      {content}
+    </ReactMarkdown>
   )
 }
 
@@ -228,7 +301,7 @@ function ChatArea({
               className={`message-bubble ${msg.role === 'assistant' ? 'message-bot' : 'message-user'}`}
               style={{ border: msg.role === 'assistant' ? '1px solid #eee' : 'none' }}
             >
-              {msg.content}
+              {msg.role === 'assistant' ? <BotMessage content={msg.content} /> : msg.content}
             </div>
             <div style={{ fontSize: '10px', marginTop: '6px', color: '#999', padding: '0 4px' }}>
               {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

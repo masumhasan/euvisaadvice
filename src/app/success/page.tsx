@@ -12,7 +12,7 @@ export default function SuccessPage() {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer)
-          router.push('/chat')
+          router.push('/client-chat')
           return 0
         }
         return prev - 1
@@ -44,7 +44,7 @@ export default function SuccessPage() {
           </p>
         </div>
 
-        <button onClick={() => router.push('/chat')} style={{ padding: '16px 32px', background: '#1a1a2e', color: '#fff', borderRadius: '14px', fontWeight: '600', border: 'none', cursor: 'pointer', width: '100%', fontSize: '16px', transition: 'all 0.2s ease', boxShadow: '0 8px 16px rgba(26, 26, 46, 0.15)' }}>
+        <button onClick={() => router.push('/client-chat')} style={{ padding: '16px 32px', background: '#1a1a2e', color: '#fff', borderRadius: '14px', fontWeight: '600', border: 'none', cursor: 'pointer', width: '100%', fontSize: '16px', transition: 'all 0.2s ease', boxShadow: '0 8px 16px rgba(26, 26, 46, 0.15)' }}>
           Go to Chat Now
         </button>
       </div>

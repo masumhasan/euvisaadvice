@@ -51,10 +51,10 @@ function Hero() {
           </p>
 
           <div className="hero-cta">
-            <Link href="/chat" className="btn-primary">
+            <Link href="/legalchat" className="btn-primary">
               Get Legal Advice
             </Link>
-            <Link href="/echat" className="btn-outline">
+            <Link href="/client-chat" className="btn-outline">
               Existing Client Login
             </Link>
           </div>

@@ -35,7 +35,7 @@ export default function Footer() {
           <p className="footer-brand-desc">
             Expert legal services for expats and remote workers in Germany.
           </p>
-          <Link href="/chat" className="btn-sm">
+          <Link href="/legalchat" className="btn-sm">
             Start Consultation
           </Link>
         </div>

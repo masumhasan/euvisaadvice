@@ -31,7 +31,7 @@ export default function Navbar() {
           {navLinks.map(({ label, href }) => (
             <Link key={label} href={href} className="nav-link">{label}</Link>
           ))}
-          <Link href="/chat" className="btn-sm">Get Advice</Link>
+          <Link href="/legalchat" className="btn-sm">Get Advice</Link>
         </div>
 
         {/* Hamburger */}
@@ -53,7 +53,7 @@ export default function Navbar() {
               {label}
             </Link>
           ))}
-          <Link href="/chat" className="btn-primary" style={{ marginTop: 8, textAlign: 'center' }} onClick={() => setOpen(false)}>
+          <Link href="/legalchat" className="btn-primary" style={{ marginTop: 8, textAlign: 'center' }} onClick={() => setOpen(false)}>
             Get Advice
           </Link>
         </div>
