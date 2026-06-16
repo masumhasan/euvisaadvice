@@ -11,6 +11,7 @@ type LegalAdviceClient = {
   id: string
   name: string
   email: string
+  role: 'user' | 'client'
   emailVerified: boolean
   banned: boolean
   conversationCount: number
@@ -160,7 +161,7 @@ export default function ClientsPage() {
         {/* Table Header */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'minmax(250px, 2.5fr) minmax(200px, 2fr) 1.2fr 1.2fr 1.2fr 160px',
+          gridTemplateColumns: 'minmax(250px, 2.5fr) minmax(200px, 2fr) 1fr 1.2fr 1.2fr 1.2fr 160px',
           background: '#1a1926',
           padding: '18px 32px',
           color: '#ffffff',
@@ -171,6 +172,7 @@ export default function ClientsPage() {
         }}>
           <div>CLIENT</div>
           <div>EMAIL</div>
+          <div>ROLE</div>
           <div>VERIFICATION</div>
           <div>CONVERSATIONS</div>
           <div>LAST ACTIVE</div>
@@ -188,7 +190,7 @@ export default function ClientsPage() {
           ) : visibleClients.map((client, index) => (
             <div key={client.id} style={{
               display: 'grid',
-              gridTemplateColumns: 'minmax(250px, 2.5fr) minmax(200px, 2fr) 1.2fr 1.2fr 1.2fr 160px',
+              gridTemplateColumns: 'minmax(250px, 2.5fr) minmax(200px, 2fr) 1fr 1.2fr 1.2fr 1.2fr 160px',
               padding: '18px 32px',
               alignItems: 'center',
               borderBottom: index === visibleClients.length - 1 ? 'none' : '1px solid #f8f8f8',
@@ -219,6 +221,20 @@ export default function ClientsPage() {
               {/* Email */}
               <div style={{ color: '#434347', fontSize: '14px' }}>
                 {client.email}
+              </div>
+
+              {/* Role */}
+              <div>
+                <span style={{
+                  padding: '5px 12px',
+                  borderRadius: '20px',
+                  fontSize: '11px',
+                  fontWeight: '600',
+                  textTransform: 'capitalize',
+                  ...getRoleStyle(client.role),
+                }}>
+                  {client.role}
+                </span>
               </div>
 
               {/* Verification */}
@@ -317,6 +333,12 @@ export default function ClientsPage() {
 
     </div>
   )
+}
+
+function getRoleStyle(role: 'user' | 'client') {
+  return role === 'client'
+    ? { backgroundColor: 'rgba(159, 122, 234, 0.12)', color: '#6b46c1' }
+    : { backgroundColor: 'rgba(66, 153, 225, 0.12)', color: '#2b6cb0' }
 }
 
 function getVerificationStyle(verified: boolean) {
