@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { DownloadIcon, ChevronLeftIcon, ChevronRightIcon } from '@/components/Icons'
+import { ChevronLeftIcon, ChevronRightIcon } from '@/components/Icons'
 
 const payments = [
   { id: 1, client: 'Sarah Mitchell', email: 'sarah@email.com', amount: '€89', status: 'Successful', date: 'Apr 9, 2026' },
@@ -10,9 +10,6 @@ const payments = [
   { id: 3, client: 'Anna Kowalski', email: 'anna@email.com', amount: '€89', status: 'Refunded', date: 'Apr 8, 2026' },
   { id: 4, client: 'Marco Bianchi', email: 'marco@email.com', amount: '€89', status: 'Failed', date: 'Apr 8, 2026' },
   { id: 5, client: 'Lisa Park', email: 'lisa@email.com', amount: '€89', status: 'Successful', date: 'Apr 7, 2026' },
-  { id: 6, client: 'James Wright', email: 'james@email.com', amount: '€89', status: 'Successful', date: 'Apr 7, 2026' },
-  { id: 7, client: 'Nina Patel', email: 'nina@email.com', amount: '€89', status: 'Successful', date: 'Apr 6, 2026' },
-  { id: 8, client: 'Tom Fischer', email: 'tom@email.com', amount: '€89', status: 'Refunded', date: 'Apr 6, 2026' },
 ]
 
 export default function PaymentsPage() {
@@ -57,61 +54,25 @@ export default function PaymentsPage() {
         ))}
       </div>
 
-      {/* Actions Row */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', gap: '16px' }}>
-          <input 
-            type="text" 
-            placeholder="Date range" 
-            style={{ 
-              padding: '10px 16px', 
-              borderRadius: '10px', 
-              border: '1px solid #f0f0f0', 
-              fontSize: '13px', 
-              width: '180px',
-              outline: 'none',
-              backgroundColor: '#ffffff'
-            }}
-          />
-          <div style={{ width: '100px', height: '40px', background: '#ffffff', borderRadius: '10px', border: '1px solid #f0f0f0' }}></div>
-        </div>
-        <button style={{
-          backgroundColor: '#ffffff',
-          color: '#1a1a2e',
-          border: '1px solid #f0f0f0',
-          padding: '10px 20px',
-          borderRadius: '10px',
-          fontSize: '13px',
-          fontWeight: '600',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          cursor: 'pointer'
-        }}>
-          <DownloadIcon style={{ width: 16, height: 16 }} />
-          Export CSV
-        </button>
-      </div>
-
       {/* Payments Table */}
-      <div style={{ 
-        background: '#ffffff', 
-        borderRadius: '32px', 
+      <div style={{
+        background: '#ffffff',
+        borderRadius: '32px 32px 8px 8px',
         boxShadow: '0 10px 40px rgba(0,0,0,0.03)',
         border: '1px solid rgba(0,0,0,0.02)',
-        overflow: 'hidden'
       }}>
         {/* Table Header */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: '50px 2fr 2fr 1fr 1fr 1fr 100px', 
-          background: '#1a1926', 
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '50px 2fr 2fr 1fr 1fr 1fr 100px',
+          background: '#1a1926',
           padding: '18px 32px',
           color: '#ffffff',
           fontWeight: '700',
           fontSize: '11px',
           textTransform: 'uppercase',
-          letterSpacing: '0.1em'
+          letterSpacing: '0.1em',
+          borderRadius: '30px 30px 0 0',
         }}>
           <div>#</div>
           <div>CLIENT</div>

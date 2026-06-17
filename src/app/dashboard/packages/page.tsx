@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react'
 
 import { PlusIcon, TrashIcon } from '@/components/Icons'
+import { getAdminToken } from '@/lib/adminAuth'
+
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3005'
 
 // ── Types ───────────────────────────────────────────────────────────────────────
 
@@ -11,7 +14,7 @@ interface Package {
   name: string
   price: number
   description: string
-  created_at: string
+  createdAt: string
 }
 
 // ── Page Component ──────────────────────────────────────────────────────────────
@@ -22,6 +25,7 @@ export default function ChatbotPackagesPage() {
   // Package Management State
   const [packages, setPackages] = useState<Package[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
 
@@ -30,6 +34,7 @@ export default function ChatbotPackagesPage() {
   const [price, setPrice] = useState('')
   const [description, setDescription] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -38,24 +43,56 @@ export default function ChatbotPackagesPage() {
 
   async function fetchPackages() {
     setLoading(true)
-    setPackages([]) // Mock empty array
-    setLoading(false)
+    setError(null)
+    try {
+      const token = getAdminToken()
+      const res = await fetch(`${BACKEND}/api/admin/packages`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) throw new Error('Failed to load packages')
+      const data = await res.json()
+      setPackages(data.packages)
+    } catch {
+      setError('Could not load packages. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   async function handleSavePackage(e: React.FormEvent) {
     e.preventDefault()
     setIsSubmitting(true)
+    setFormError(null)
 
-    if (editingId) {
-      const newPkg = { id: editingId, name, price: parseFloat(price), description, created_at: new Date().toISOString() }
-      setPackages(packages.map(p => p.id === editingId ? newPkg : p))
+    const body = { name, price: parseFloat(price), description }
+    const token = getAdminToken()
+
+    try {
+      if (editingId) {
+        const res = await fetch(`${BACKEND}/api/admin/packages/${editingId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify(body),
+        })
+        if (!res.ok) throw new Error('Failed to update package')
+        const data = await res.json()
+        setPackages(packages.map(p => p.id === editingId ? data.package : p))
+      } else {
+        const res = await fetch(`${BACKEND}/api/admin/packages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify(body),
+        })
+        if (!res.ok) throw new Error('Failed to create package')
+        const data = await res.json()
+        setPackages([data.package, ...packages])
+      }
       resetForm()
-    } else {
-      const newPkg = { id: Math.random().toString(), name, price: parseFloat(price), description, created_at: new Date().toISOString() }
-      setPackages([newPkg, ...packages])
-      resetForm()
+    } catch {
+      setFormError('Could not save package. Please try again.')
+    } finally {
+      setIsSubmitting(false)
     }
-    setIsSubmitting(false)
   }
 
   function resetForm() {
@@ -64,6 +101,7 @@ export default function ChatbotPackagesPage() {
     setDescription('')
     setEditingId(null)
     setShowAddForm(false)
+    setFormError(null)
   }
 
   function handleEditClick(pkg: Package) {
@@ -76,7 +114,17 @@ export default function ChatbotPackagesPage() {
 
   async function handleDeletePackage(id: string) {
     if (!confirm('Are you sure you want to delete this package?')) return
-    setPackages(packages.filter(p => p.id !== id))
+    const token = getAdminToken()
+    try {
+      const res = await fetch(`${BACKEND}/api/admin/packages/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) throw new Error('Failed to delete package')
+      setPackages(packages.filter(p => p.id !== id))
+    } catch {
+      alert('Could not delete package. Please try again.')
+    }
   }
 
   if (!mounted) return null
@@ -170,6 +218,11 @@ export default function ChatbotPackagesPage() {
                 style={{ padding: '12px 16px', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.1)', fontSize: '15px', resize: 'none', outline: 'none', color: '#000000' }}
               />
             </div>
+            {formError && (
+              <div style={{ padding: '12px 16px', background: '#fff5f5', border: '1px solid #fed7d7', borderRadius: '10px', color: '#c53030', fontSize: '14px' }}>
+                {formError}
+              </div>
+            )}
             <button
               type="submit"
               disabled={isSubmitting}
@@ -186,6 +239,12 @@ export default function ChatbotPackagesPage() {
               {isSubmitting ? 'Saving...' : (editingId ? 'Update Package' : 'Save Package')}
             </button>
           </form>
+        </div>
+      )}
+
+      {error && (
+        <div style={{ padding: '16px', background: '#fff5f5', border: '1px solid #fed7d7', borderRadius: '12px', color: '#c53030', fontSize: '14px' }}>
+          {error}
         </div>
       )}
 
@@ -221,7 +280,7 @@ export default function ChatbotPackagesPage() {
                 {pkg.description}
               </p>
               <div style={{ marginTop: '24px', fontSize: '10px', color: 'rgba(0,0,0,0.3)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                CREATED ON {new Date(pkg.created_at).toLocaleDateString()}
+                CREATED ON {new Date(pkg.createdAt).toLocaleDateString()}
               </div>
             </div>
           ))}

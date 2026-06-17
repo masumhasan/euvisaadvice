@@ -254,7 +254,7 @@ export default function ProfilePage() {
 
           <div className="profile-header-actions">
             <Link href="/" className="profile-btn-secondary">Back to Home</Link>
-            <Link href="/client-chat" className="profile-btn-secondary">Assistant</Link>
+            <Link href="/legalchat" className="profile-btn-secondary">Assistant</Link>
             <button onClick={() => setIsEditing(!isEditing)} className="profile-btn-primary">
               {isEditing ? 'Cancel' : 'Edit Profile'}
             </button>
@@ -291,7 +291,7 @@ export default function ProfilePage() {
             ))}
           </nav>
           <div className="profile-sidebar-footer hide-mobile">
-            <Link href="/client-chat" className="assistant-card">
+            <Link href="/legalchat" className="assistant-card">
               <div className="assistant-dot"></div>
               <div className="assistant-info">
                 <strong>Legal AI</strong>
