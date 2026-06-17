@@ -38,7 +38,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
 
   const navItems = [
     { label: 'Overview', icon: <BarChartIcon />, href: '/dashboard' },
-    { label: 'Packages', icon: <ChatBubbleIcon />, href: '/dashboard/chat' },
+    { label: 'Packages', icon: <ChatBubbleIcon />, href: '/dashboard/packages' },
     { label: 'Client Chats', icon: <InboxIcon />, href: '/dashboard/inbox' },
     { label: 'Payments', icon: <PaymentIcon />, href: '/dashboard/payments' },
     { label: 'All Members', icon: <UsersIcon />, href: '/dashboard/clients' },

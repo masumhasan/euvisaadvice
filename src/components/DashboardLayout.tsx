@@ -81,7 +81,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   const getPageTitle = () => {
     if (pathname === '/dashboard') return 'Dashboard Overview'
-    if (pathname === '/dashboard/chat') return 'Chatbot Packages'
+    if (pathname === '/dashboard/packages') return 'Chatbot Packages'
     if (pathname === '/dashboard/inbox') return 'Client Chats'
     if (pathname === '/dashboard/payments') return 'Payments & Billing'
     if (pathname === '/dashboard/clients') return 'All Members'
