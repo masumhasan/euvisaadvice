@@ -166,6 +166,7 @@ export default function ChatPage() {
   const [isTyping, setIsTyping] = useState(false)
   const [authChecked, setAuthChecked] = useState(false)
   const [userName, setUserName] = useState('')
+  const [userEmail, setUserEmail] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const authHeader = () => ({ Authorization: `Bearer ${getToken()}` })
@@ -201,6 +202,7 @@ export default function ChatPage() {
         }
         const fullName = `${data.user?.firstName ?? ''} ${data.user?.lastName ?? ''}`.trim()
         setUserName(fullName || data.user?.email || '')
+        setUserEmail(data.user?.email || '')
         setAuthChecked(true)
         return loadConversations()
       })
@@ -409,7 +411,7 @@ export default function ChatPage() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
             <span className="user-name">{userName || 'Account'}</span>
-            <span style={{ fontSize: '10px', color: '#c9a84c', fontWeight: '600' }}>Premium Client</span>
+            <span style={{ fontSize: '10px', color: '#c9a84c', fontWeight: '600' }}>{userEmail}</span>
           </div>
           <div style={{ color: 'rgba(255,255,255,0.3)', display: 'flex' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
@@ -441,10 +443,6 @@ export default function ChatPage() {
           </div>
 
           <div className="hide-mobile" style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
-            <button style={{ background: 'none', border: 'none', color: '#666', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
-              Export Chat
-            </button>
             <Link href="/" style={{ fontSize: '13px', color: '#1a1a2e', fontWeight: '600', textDecoration: 'none', border: '1px solid #ddd', padding: '8px 16px', borderRadius: '8px' }}>
               Exit
             </Link>
