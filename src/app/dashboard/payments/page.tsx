@@ -173,7 +173,7 @@ export default function PaymentsPage() {
       {/* Footer */}
       <footer style={{ marginTop: 'auto', paddingTop: '40px', paddingBottom: '10px' }}>
         <p style={{ fontSize: '11px', color: 'rgba(0,0,0,0.2)', fontWeight: '600', textAlign: 'center' }}>
-          &copy; {new Date().getFullYear()} MS Advocate. All rights reserved.
+          &copy; {new Date().getFullYear()} EUVisaAdvice. All rights reserved.
         </p>
       </footer>
 

@@ -148,7 +148,7 @@ function formatHistoryTimestamp(iso: string): string {
 
 const WELCOME_MESSAGE: Message = {
   id: 'welcome',
-  text: "Welcome to MS Advocate. I am your specialized AI legal assistant. I can help you analyze documents, explain legal precedents, or guide you through case filing. How may I assist you today?",
+  text: "Welcome to EUVisaAdvice. I am your specialized AI legal assistant. I can help you analyze documents, explain legal precedents, or guide you through case filing. How may I assist you today?",
   sender: 'bot',
   timestamp: 'Today',
 }
@@ -345,7 +345,7 @@ export default function ChatPage() {
         <div className="chat-sidebar-header">
           <div className="signin-left-logo text-left" style={{ marginBottom: '28px' }}>
             <ScalesIcon style={{ width: 22, height: 22, color: '#c9a84c' }} />
-            <span className="signin-brand">MS Advocate</span>
+            <span className="signin-brand">EUVisaAdvice</span>
           </div>
           
           <button className="new-chat-btn" onClick={handleNewConsultation}>
@@ -494,7 +494,7 @@ export default function ChatPage() {
             </button>
           </div>
           <div style={{ textAlign: 'center', fontSize: '11px', color: '#bbb', marginTop: '16px', letterSpacing: '0.01em' }}>
-            Powered by MS Advocate Legal AI. Secure & Confidential.
+            Powered by EUVisaAdvice AI. Secure & Confidential.
           </div>
         </div>
       </main>

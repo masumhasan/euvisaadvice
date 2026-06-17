@@ -86,7 +86,7 @@ export default function Footer() {
 
       {/* Bottom bar */}
       <div className="footer-bottom">
-        <p>© 2026 MS Advocate. All rights reserved.</p>
+        <p>© 2026 EUVisaAdvice. All rights reserved.</p>
       </div>
     </footer>
   )

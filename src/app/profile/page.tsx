@@ -220,7 +220,7 @@ export default function ProfilePage() {
         <div className="profile-nav-container">
           <Link href="/" className="signin-left-logo text-left">
             <ScalesIcon style={{ width: 22, height: 22, color: '#c9a84c' }} />
-            <span className="signin-brand">MS Advocate</span>
+            <span className="signin-brand">EUVisaAdvice</span>
           </Link>
           <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: avatarUrl ? 'transparent' : 'linear-gradient(135deg, #c9a84c, #ab8c36)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '14px', color: '#fff', flexShrink: 0, overflow: 'hidden' }}>
             {avatarUrl

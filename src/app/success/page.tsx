@@ -35,7 +35,7 @@ export default function SuccessPage() {
         
         <h1 style={{ fontSize: '32px', fontWeight: '700', color: '#1a1a2e', marginBottom: '16px', letterSpacing: '-0.02em' }}>Payment Successful!</h1>
         <p style={{ fontSize: '16px', color: '#666', lineHeight: '1.6', marginBottom: '32px' }}>
-          Your registration is complete and your payment has been processed securely. Welcome to MS Advocate.
+          Your registration is complete and your payment has been processed securely. Welcome to EUVisaAdvice.
         </p>
         
         <div style={{ background: 'rgba(201, 168, 76, 0.06)', padding: '16px', borderRadius: '16px', marginBottom: '32px', border: '1px solid rgba(201, 168, 76, 0.15)' }}>

@@ -191,7 +191,7 @@ export default function RegisterPage() {
         <div className="signin-left-content">
           <div className="signin-left-logo text-left">
             <ScalesIcon style={{ width: 26, height: 26 }} />
-            <span className="signin-brand">MS Advocate</span>
+            <span className="signin-brand">EUVisaAdvice</span>
           </div>
           <div>
             <div className="signin-shield-icon">
@@ -233,13 +233,13 @@ export default function RegisterPage() {
 
           <div className="signin-mobile-logo">
             <ScalesIcon style={{ width: 24, height: 24 }} />
-            <span className="signin-brand" style={{ color: '#1a1a2e' }}>MS Advocate</span>
+            <span className="signin-brand" style={{ color: '#1a1a2e' }}>EUVisaAdvice</span>
           </div>
 
           {step === 'account' && (
             <div className="fade-in">
               <h2 className="signin-form-heading">Create Account</h2>
-              <p className="signin-form-sub">Provide your details to register with MS Advocate</p>
+              <p className="signin-form-sub">Provide your details to register with EUVisaAdvice</p>
               <form className="signin-form" onSubmit={handleAccountSubmit}>
                 <div className="signin-grid">
                   <div className="signin-field">

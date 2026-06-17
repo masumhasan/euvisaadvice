@@ -31,7 +31,7 @@ export default function SmartLoader() {
         <div className="progress-container">
           <div className="progress-bar" style={{ width: `${progress}%` }}></div>
         </div>
-        <div className="loader-brand-name">MS ADVOCATE</div>
+        <div className="loader-brand-name">EUVISAADVICE</div>
       </div>
 
       <style jsx>{`

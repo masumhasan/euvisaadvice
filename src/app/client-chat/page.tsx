@@ -576,7 +576,7 @@ function ChatArea({ token, onSignOut }: { token: string; onSignOut: () => void }
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
           <span style={{ fontSize: '11px', color: '#bbb', letterSpacing: '0.01em' }}>
-            Powered by MS Advocate Legal AI. Secure & Confidential.
+            Powered by EUVisaAdvice AI. Secure & Confidential.
           </span>
           <button
             onClick={onSignOut}

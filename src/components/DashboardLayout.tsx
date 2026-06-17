@@ -10,17 +10,26 @@ const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3005'
 
 // ── Context ───────────────────────────────────────────────────────────────────
 
+export interface AdminUser {
+  firstName: string
+  lastName: string
+  email: string
+}
+
 interface SidebarContextType {
   sidebarOpen: boolean
   setSidebarOpen: (open: boolean) => void
+  adminUser: AdminUser | null
+  setAdminUser: (user: AdminUser | null) => void
 }
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined)
 
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [adminUser, setAdminUser] = useState<AdminUser | null>(null)
   return (
-    <SidebarContext.Provider value={{ sidebarOpen, setSidebarOpen }}>
+    <SidebarContext.Provider value={{ sidebarOpen, setSidebarOpen, adminUser, setAdminUser }}>
       {children}
     </SidebarContext.Provider>
   )
@@ -35,7 +44,7 @@ export function useSidebar() {
 // ── Layout Component ──────────────────────────────────────────────────────────
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
-  const { sidebarOpen, setSidebarOpen } = useSidebar()
+  const { sidebarOpen, setSidebarOpen, setAdminUser } = useSidebar()
   const pathname = usePathname()
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
@@ -55,13 +64,18 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         if (!res.ok) throw new Error('Invalid session')
         const data = await res.json()
         if (data.user?.role !== 'admin') throw new Error('Not an admin')
+        setAdminUser({
+          firstName: data.user.firstName,
+          lastName: data.user.lastName,
+          email: data.user.email,
+        })
         setAuthorized(true)
       })
       .catch(() => {
         clearAdminToken()
         router.push('/admin/login')
       })
-  }, [router])
+  }, [router, setAdminUser])
 
   if (!mounted || !authorized) return null
 

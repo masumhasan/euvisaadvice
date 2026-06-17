@@ -171,7 +171,7 @@ export default function AdminLoginPage() {
         <div className="signin-left-content">
           <div className="signin-left-logo text-left">
             <ScalesIcon style={{ width: 26, height: 26 }} />
-            <span className="signin-brand">MS Advocate</span>
+            <span className="signin-brand">EUVisaAdvice</span>
           </div>
           <div>
             <div className="signin-shield-icon">
@@ -193,7 +193,7 @@ export default function AdminLoginPage() {
         <div className="signin-form-wrap">
           <div className="signin-mobile-logo">
             <ScalesIcon style={{ width: 24, height: 24 }} />
-            <span className="signin-brand" style={{ color: '#1a1a2e' }}>MS Advocate</span>
+            <span className="signin-brand" style={{ color: '#1a1a2e' }}>EUVisaAdvice</span>
           </div>
 
           {mode === 'login' && (

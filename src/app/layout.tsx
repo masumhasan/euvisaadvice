@@ -9,8 +9,8 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "LawFirm AI – Smart Legal Management",
-  description: "AI-powered law firm management platform built with Next.js and Supabase.",
+  title: "EUVisaAdvice",
+  description: "AI-powered EU visa advice platform.",
 };
 
 export default function RootLayout({
