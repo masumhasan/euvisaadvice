@@ -574,16 +574,10 @@ function ChatArea({ token, onSignOut }: { token: string; onSignOut: () => void }
             <SendIcon />
           </button>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
+        <div style={{ marginTop: '12px' }}>
           <span style={{ fontSize: '11px', color: '#bbb', letterSpacing: '0.01em' }}>
             Powered by EUVisaAdvice AI. Secure & Confidential.
           </span>
-          <button
-            onClick={onSignOut}
-            style={{ background: 'none', border: 'none', fontSize: '12px', color: '#aaa', cursor: 'pointer', textDecoration: 'underline' }}
-          >
-            Sign out
-          </button>
         </div>
       </div>
 
@@ -654,7 +648,15 @@ export default function ExternalChatPage() {
             </div>
           </div>
 
-          <div className="hide-mobile" style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+          <div className="hide-mobile" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            {stage.kind === 'chat' && (
+              <button
+                onClick={handleSignOut}
+                style={{ fontSize: '13px', color: '#1a1a2e', fontWeight: '600', background: 'none', border: '1px solid #ddd', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer' }}
+              >
+                Sign out
+              </button>
+            )}
             <Link href="/" style={{ fontSize: '13px', color: '#1a1a2e', fontWeight: '600', textDecoration: 'none', border: '1px solid #ddd', padding: '8px 16px', borderRadius: '8px' }}>
               Exit
             </Link>
