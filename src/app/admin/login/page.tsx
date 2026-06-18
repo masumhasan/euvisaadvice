@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { ScalesIcon } from '@/components/Icons'
-import { setToken } from '@/lib/auth'
+import { setAdminToken } from '@/lib/adminAuth'
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3005'
-/* ── Eye icon ─────────────────────────────────────── */
+
 function EyeIcon({ open }: { open: boolean }) {
   return open ? (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -23,33 +22,14 @@ function EyeIcon({ open }: { open: boolean }) {
   )
 }
 
-/* ── Check circle icon ────────────────────────────── */
-function CheckIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-      <polyline points="22 4 12 14.01 9 11.01" />
-    </svg>
-  )
-}
+type Mode = 'login' | 'forgot' | 'reset'
 
-const features = [
-  'Instant case updates',
-  'Secure client portal',
-  'Direct attorney communication',
-]
-
-type Mode = 'login' | 'verify' | 'forgot' | 'reset'
-
-export default function LoginPage() {
+export default function AdminLoginPage() {
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [mode, setMode] = useState<Mode>('login')
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -59,6 +39,21 @@ export default function LoginPage() {
   const [resendMessage, setResendMessage] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmNewPassword, setConfirmNewPassword] = useState('')
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const handleOtpInput = (index: number, val: string) => {
+    if (val.length > 1) return
+    const next = [...otp]
+    next[index] = val
+    setOtp(next)
+    if (val && index < 5) {
+      const nextInput = document.getElementById(`admin-otp-${index + 1}`)
+      if (nextInput) (nextInput as HTMLInputElement).focus()
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -72,80 +67,16 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       })
       const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Login failed')
 
-      if (!res.ok) {
-        if (data.code === 'EMAIL_NOT_VERIFIED') {
-          setMode('verify')
-          setError('')
-          await handleResendOtp()
-          return
-        }
-        throw new Error(data.error || 'Login failed')
+      if (data.user?.role !== 'admin') {
+        throw new Error('This account does not have admin access.')
       }
 
-      setToken(data.token)
-      if (data.user?.role === 'client') {
-        router.push('/client-chat')
-      } else if (data.user?.role === 'admin') {
-        router.push('/dashboard')
-      } else {
-        router.push('/legalchat')
-      }
+      setAdminToken(data.token)
+      router.push('/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleOtpInput = (index: number, val: string) => {
-    if (val.length > 1) return
-    const newOtp = [...otp]
-    newOtp[index] = val
-    setOtp(newOtp)
-    if (val && index < 5) {
-      const nextInput = document.getElementById(`otp-${index + 1}`)
-      if (nextInput) (nextInput as HTMLInputElement).focus()
-    }
-  }
-
-  const handleResendOtp = async () => {
-    setResending(true)
-    setResendMessage('')
-    try {
-      const res = await fetch(`${BACKEND}/api/auth/resend-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to resend code')
-      setResendMessage('A verification code has been sent to your email.')
-    } catch (err) {
-      setResendMessage(err instanceof Error ? err.message : 'Failed to resend code')
-    } finally {
-      setResending(false)
-    }
-  }
-
-  const handleVerifySubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-
-    try {
-      const res = await fetch(`${BACKEND}/api/auth/verify-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp: otp.join('') }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Verification failed')
-
-      setToken(data.token)
-      router.push('/legalchat')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Verification failed')
     } finally {
       setLoading(false)
     }
@@ -216,8 +147,13 @@ export default function LoginPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to reset password')
 
-      setToken(data.token)
-      router.push('/legalchat')
+      if (data.user?.role !== 'admin') {
+        setError('Password reset, but this account does not have admin access.')
+        return
+      }
+
+      setAdminToken(data.token)
+      router.push('/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to reset password')
     } finally {
@@ -244,27 +180,10 @@ export default function LoginPage() {
               </svg>
             </div>
 
-            <h1 className="signin-welcome-heading">Welcome Back</h1>
+            <h1 className="signin-welcome-heading">Admin Portal</h1>
             <p className="signin-welcome-sub">
-              Access your case updates and stay informed about your legal matters
+              Restricted access — sign in with your administrator account to manage the platform.
             </p>
-
-            <ul className="signin-features">
-              {features.map((f) => (
-                <li key={f} className="signin-feature-item">
-                  <CheckIcon />
-                  <span>{f}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Bottom link – pinned */}
-          <div className="signin-left-bottom">
-            <span>Don&apos;t have an account?</span>
-            <Link href="/register" className="signin-gold-link">
-              Get legal advice →
-            </Link>
           </div>
         </div>
       </div>
@@ -272,7 +191,6 @@ export default function LoginPage() {
       {/* ════════ RIGHT PANEL ════════ */}
       <div className="signin-right">
         <div className="signin-form-wrap">
-          {/* Mobile-only logo */}
           <div className="signin-mobile-logo">
             <ScalesIcon style={{ width: 24, height: 24 }} />
             <span className="signin-brand" style={{ color: '#1a1a2e' }}>EUVisaAdvice</span>
@@ -280,16 +198,14 @@ export default function LoginPage() {
 
           {mode === 'login' && (
             <>
-              <h2 className="signin-form-heading">Sign in to your account</h2>
-              <p className="signin-form-sub">Enter your credentials to continue</p>
+              <h2 className="signin-form-heading">Admin Sign In</h2>
+              <p className="signin-form-sub">Enter your administrator credentials to continue</p>
 
               <form onSubmit={handleSubmit} className="signin-form" noValidate>
-
-                {/* Email */}
                 <div className="signin-field">
-                  <label htmlFor="email" className="signin-label">Email address</label>
+                  <label htmlFor="admin-email" className="signin-label">Email address</label>
                   <input
-                    id="email"
+                    id="admin-email"
                     type="email"
                     autoComplete="email"
                     required
@@ -299,12 +215,11 @@ export default function LoginPage() {
                   />
                 </div>
 
-                {/* Password */}
                 <div className="signin-field">
-                  <label htmlFor="password" className="signin-label">Password</label>
+                  <label htmlFor="admin-password" className="signin-label">Password</label>
                   <div className="signin-input-wrap">
                     <input
-                      id="password"
+                      id="admin-password"
                       type={showPassword ? 'text' : 'password'}
                       autoComplete="current-password"
                       required
@@ -333,7 +248,6 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                {/* Submit */}
                 {error && <p style={{ color: '#ff4d4d', fontSize: '14px', marginBottom: '12px' }}>{error}</p>}
                 <button
                   type="submit"
@@ -343,74 +257,19 @@ export default function LoginPage() {
                   {loading ? 'Signing in…' : 'Sign In'}
                 </button>
               </form>
-
-              {/* Divider */}
-              <div className="signin-divider">
-                <div className="signin-divider-line" />
-                <span className="signin-divider-text">or</span>
-                <div className="signin-divider-line" />
-              </div>
-
-              {/* New client */}
-              <p className="signin-new-client">
-                <span>New client?</span>
-                <Link href="/register" className="signin-gold-link">Get legal advice →</Link>
-              </p>
-            </>
-          )}
-
-          {mode === 'verify' && (
-            <>
-              <h2 className="signin-form-heading">Verify Your Email</h2>
-              <p className="signin-form-sub">Enter the 6-digit code sent to {email}</p>
-
-              <form onSubmit={handleVerifySubmit} className="signin-form">
-                <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '8px' }}>
-                  {otp.map((d, i) => (
-                    <input
-                      key={i}
-                      id={`otp-${i}`}
-                      type="text"
-                      maxLength={1}
-                      className="signin-input"
-                      style={{ width: '44px', textAlign: 'center', fontWeight: 'bold' }}
-                      value={d}
-                      onChange={(e) => handleOtpInput(i, e.target.value)}
-                    />
-                  ))}
-                </div>
-                {error && <p style={{ color: '#ff4d4d', fontSize: '14px', marginTop: '10px', textAlign: 'center' }}>{error}</p>}
-                {resendMessage && <p style={{ color: '#666', fontSize: '13px', marginTop: '10px', textAlign: 'center' }}>{resendMessage}</p>}
-                <button
-                  type="submit"
-                  className={`signin-submit-btn${loading ? ' loading' : ''}`}
-                  disabled={loading}
-                >
-                  {loading ? 'Verifying…' : 'Verify Email'}
-                </button>
-                <p className="signin-new-client" style={{ marginTop: '16px' }}>
-                  Didn&apos;t get the code? <button type="button" disabled={resending} className="signin-gold-link" style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={handleResendOtp}>
-                    {resending ? 'Resending...' : 'Resend OTP'}
-                  </button>
-                </p>
-              </form>
-              <p className="signin-new-client" style={{ marginTop: '8px' }}>
-                <span>Don&apos;t have an account?</span>
-                <Link href="/register" className="signin-gold-link">Get legal advice →</Link>
-              </p>
             </>
           )}
 
           {mode === 'forgot' && (
             <>
-              <h2 className="signin-form-heading">Reset Your Password</h2>
-              <p className="signin-form-sub">Enter your account email and we&apos;ll send you a reset code</p>
+              <h2 className="signin-form-heading">Reset Admin Password</h2>
+              <p className="signin-form-sub">Enter your admin account email and we&apos;ll send you a reset code</p>
 
               <form onSubmit={handleForgotPasswordSubmit} className="signin-form" noValidate>
                 <div className="signin-field">
-                  <label htmlFor="forgot-email" className="signin-label">Email address</label>
+                  <label htmlFor="admin-forgot-email" className="signin-label">Email address</label>
                   <input
-                    id="forgot-email"
+                    id="admin-forgot-email"
                     type="email"
                     autoComplete="email"
                     required
@@ -434,10 +293,6 @@ export default function LoginPage() {
                   </button>
                 </p>
               </form>
-              <p className="signin-new-client" style={{ marginTop: '8px' }}>
-                <span>Don&apos;t have an account?</span>
-                <Link href="/register" className="signin-gold-link">Get legal advice →</Link>
-              </p>
             </>
           )}
 
@@ -451,7 +306,7 @@ export default function LoginPage() {
                   {otp.map((d, i) => (
                     <input
                       key={i}
-                      id={`otp-${i}`}
+                      id={`admin-otp-${i}`}
                       type="text"
                       maxLength={1}
                       className="signin-input"
@@ -463,9 +318,9 @@ export default function LoginPage() {
                 </div>
 
                 <div className="signin-field">
-                  <label htmlFor="new-password" className="signin-label">New Password</label>
+                  <label htmlFor="admin-new-password" className="signin-label">New Password</label>
                   <input
-                    id="new-password"
+                    id="admin-new-password"
                     type="password"
                     required
                     minLength={8}
@@ -476,9 +331,9 @@ export default function LoginPage() {
                   />
                 </div>
                 <div className="signin-field">
-                  <label htmlFor="confirm-new-password" className="signin-label">Confirm New Password</label>
+                  <label htmlFor="admin-confirm-new-password" className="signin-label">Confirm New Password</label>
                   <input
-                    id="confirm-new-password"
+                    id="admin-confirm-new-password"
                     type="password"
                     required
                     minLength={8}
@@ -503,10 +358,6 @@ export default function LoginPage() {
                   </button>
                 </p>
               </form>
-              <p className="signin-new-client" style={{ marginTop: '8px' }}>
-                <span>Don&apos;t have an account?</span>
-                <Link href="/register" className="signin-gold-link">Get legal advice →</Link>
-              </p>
             </>
           )}
         </div>

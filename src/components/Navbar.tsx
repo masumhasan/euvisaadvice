@@ -1,8 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { LogoIcon } from './Icons'
 
 const navLinks = [
@@ -13,36 +12,6 @@ const navLinks = [
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
-  const [user, setUser] = useState<any>(null)
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [avatarUrl, setAvatarUrl] = useState('')
-  const [initials, setInitials] = useState('')
-  const [dropdownOpen, setDropdownOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-  const router = useRouter()
-
-  useEffect(() => {
-    // Backend removed: statically setting user to null or dummy logic if needed.
-    // setUser(null)
-
-    // Close dropdown on outside click
-    const handleClick = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [])
-
-  async function handleSignOut() {
-    setUser(null)
-    setDropdownOpen(false)
-    router.push('/')
-    router.refresh()
-  }
-
-  const profileHref = isAdmin ? '/dashboard' : '/profile'
 
   return (
     <nav className="nav-root">
@@ -52,8 +21,8 @@ export default function Navbar() {
         <Link href="/" className="nav-logo">
           <LogoIcon style={{ width: 32, height: 32 }} />
           <div>
-            <div className="nav-logo-name">MS ADVOC<span>ATE</span></div>
-            <div className="nav-logo-since">SINCE 2023</div>
+            <div className="nav-logo-name"><span style={{ color: '#ffffff' }}>EU</span><span style={{ color: '#c9a84c' }}>VISA</span><span style={{ color: '#ffffff' }}>ADVICE</span></div>
+            <div className="nav-logo-since">SINCE 2026</div>
           </div>
         </Link>
 
@@ -62,90 +31,7 @@ export default function Navbar() {
           {navLinks.map(({ label, href }) => (
             <Link key={label} href={href} className="nav-link">{label}</Link>
           ))}
-
-          {user ? (
-            /* ── Logged-in: Avatar + Dropdown ── */
-            <div ref={dropdownRef} style={{ position: 'relative' }}>
-              <button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                style={{
-                  width: '38px', height: '38px', borderRadius: '50%',
-                  background: avatarUrl ? 'transparent' : 'linear-gradient(135deg, #c9a84c, #ab8c36)',
-                  border: '2px solid rgba(201,168,76,0.4)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontWeight: '700', fontSize: '14px', color: '#fff',
-                  cursor: 'pointer', overflow: 'hidden', padding: 0,
-                  transition: 'all 0.2s ease',
-                  boxShadow: dropdownOpen ? '0 0 0 3px rgba(201,168,76,0.25)' : 'none',
-                }}
-              >
-                {avatarUrl
-                  ? <img src={avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : initials}
-              </button>
-
-              {/* Dropdown */}
-              {dropdownOpen && (
-                <div style={{
-                  position: 'absolute', top: 'calc(100% + 12px)', right: 0,
-                  background: '#fff', borderRadius: '16px', minWidth: '200px',
-                  boxShadow: '0 20px 50px rgba(0,0,0,0.12)', border: '1px solid rgba(0,0,0,0.06)',
-                  padding: '8px', zIndex: 1000, animation: 'fadeIn 0.15s ease',
-                }}>
-                  {/* User info header */}
-                  <div style={{ padding: '12px 16px 10px', borderBottom: '1px solid #f0f0f0', marginBottom: '6px' }}>
-                    <div style={{ fontSize: '13px', fontWeight: '700', color: '#1a1a2e' }}>
-                      {user.user_metadata?.first_name || user.email?.split('@')[0]}
-                    </div>
-                    <div style={{ fontSize: '12px', color: '#888', marginTop: '2px' }}>{user.email}</div>
-                    {isAdmin && (
-                      <span style={{ display: 'inline-block', marginTop: '6px', padding: '2px 8px', background: 'rgba(201,168,76,0.1)', color: '#c9a84c', borderRadius: '6px', fontSize: '11px', fontWeight: '700' }}>
-                        Admin
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Menu items */}
-                  <Link
-                    href={profileHref}
-                    onClick={() => setDropdownOpen(false)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 16px', borderRadius: '10px', color: '#1a1a2e', textDecoration: 'none', fontSize: '14px', fontWeight: '500', transition: 'background 0.15s' }}
-                    onMouseEnter={e => (e.currentTarget.style.background = '#f8f7f2')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-                    {isAdmin ? 'Dashboard' : 'My Profile'}
-                  </Link>
-
-                  <Link
-                    href="/chat"
-                    onClick={() => setDropdownOpen(false)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 16px', borderRadius: '10px', color: '#1a1a2e', textDecoration: 'none', fontSize: '14px', fontWeight: '500', transition: 'background 0.15s' }}
-                    onMouseEnter={e => (e.currentTarget.style.background = '#f8f7f2')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
-                    AI Assistant
-                  </Link>
-
-                  <div style={{ borderTop: '1px solid #f0f0f0', margin: '6px 0' }} />
-
-                  <button
-                    onClick={handleSignOut}
-                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 16px', borderRadius: '10px', color: '#ef4444', background: 'none', border: 'none', fontSize: '14px', fontWeight: '500', cursor: 'pointer', width: '100%', textAlign: 'left', transition: 'background 0.15s' }}
-                    onMouseEnter={e => (e.currentTarget.style.background = '#fef2f2')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
-                    Sign Out
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            /* ── Not logged in: Contact button ── */
-            <Link href="/login" className="btn-sm">Contact</Link>
-          )}
+          <Link href="/legalchat" className="btn-sm">Get Advice</Link>
         </div>
 
         {/* Hamburger */}
@@ -167,28 +53,9 @@ export default function Navbar() {
               {label}
             </Link>
           ))}
-
-          {user ? (
-            <>
-              <Link href={profileHref} className="nav-mobile-link" onClick={() => setOpen(false)}>
-                {isAdmin ? '⚙️ Dashboard' : '👤 My Profile'}
-              </Link>
-              <Link href="/chat" className="nav-mobile-link" onClick={() => setOpen(false)}>
-                💬 AI Assistant
-              </Link>
-              <button
-                onClick={() => { handleSignOut(); setOpen(false) }}
-                className="btn-primary"
-                style={{ marginTop: 8, textAlign: 'center', background: '#ef4444', border: 'none', cursor: 'pointer', width: '100%' }}
-              >
-                Sign Out
-              </button>
-            </>
-          ) : (
-            <Link href="/login" className="btn-primary" style={{ marginTop: 8, textAlign: 'center' }} onClick={() => setOpen(false)}>
-              Contact
-            </Link>
-          )}
+          <Link href="/legalchat" className="btn-primary" style={{ marginTop: 8, textAlign: 'center' }} onClick={() => setOpen(false)}>
+            Get Advice
+          </Link>
         </div>
       </div>
     </nav>

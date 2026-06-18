@@ -4,6 +4,9 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ScalesIcon } from '@/components/Icons'
+import { getToken, clearToken } from '@/lib/auth'
+
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3005'
 /* ── Icons ── */
 function UserIcon() {
   return (
@@ -63,13 +66,13 @@ export default function ProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [mounted, setMounted] = useState(false)
+  const [authChecked, setAuthChecked] = useState(false)
   const [activeTab, setActiveTab] = useState('personal')
   const [isEditing, setIsEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState('')
-  const [userId, setUserId] = useState('')
   const [avatarUrl, setAvatarUrl] = useState('')
-  const [avatarUploading, setAvatarUploading] = useState(false)
+  const [loggingOut, setLoggingOut] = useState(false)
 
   // Profile data
   const [formData, setFormData] = useState({
@@ -88,42 +91,43 @@ export default function ProfilePage() {
   const [passMsg, setPassMsg] = useState('')
   const [passSaving, setPassSaving] = useState(false)
 
-  // Notifications / alerts (fetched from auth events)
-  const [alerts, setAlerts] = useState<{ id: string; message: string; created_at: string }[]>([])
+  // Notifications / alerts — no events recorded yet for this account
+  const [alerts] = useState<{ id: string; message: string; created_at: string }[]>([])
 
   useEffect(() => {
     setMounted(true)
-    loadUser()
-  }, [])
 
-  async function loadUser() {
-    setUserId('mock-id')
-    setFormData({
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'john@example.com',
-      phone: '+1 234 567 8900',
-      country: 'Germany',
-      city: 'Berlin',
-      bio: 'Expat living in Germany.',
-    })
+    const token = getToken()
+    if (!token) {
+      router.push('/login')
+      return
+    }
 
-    setAlerts([
-      { id: '1', message: 'Login detected from new session.', created_at: new Date().toISOString() },
-      { id: '2', message: 'Profile created successfully.', created_at: new Date().toISOString() },
-    ])
-  }
+    fetch(`${BACKEND}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(async (res) => {
+        if (!res.ok) throw new Error('Invalid session')
+        const data = await res.json()
+        setFormData({
+          firstName: data.user.firstName || '',
+          lastName: data.user.lastName || '',
+          email: data.user.email || '',
+          phone: data.user.phone || '',
+          country: data.user.country || '',
+          city: data.user.city || '',
+          bio: data.user.bio || '',
+        })
+        setAuthChecked(true)
+      })
+      .catch(() => {
+        clearToken()
+        router.push('/login')
+      })
+  }, [router])
 
-  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    setAvatarUploading(true)
-
-    // Simulate upload
-    setTimeout(() => {
-      setAvatarUrl(URL.createObjectURL(file))
-      setAvatarUploading(false)
-    }, 1000)
+    setAvatarUrl(URL.createObjectURL(file))
   }
 
   async function handleProfileUpdate(e: React.FormEvent) {
@@ -131,37 +135,82 @@ export default function ProfilePage() {
     setSaving(true)
     setSaveMsg('')
 
-    // Simulate save
-    setTimeout(() => {
-      setSaving(false)
+    try {
+      const token = getToken()
+      const res = await fetch(`${BACKEND}/api/auth/me`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          phone: formData.phone,
+          country: formData.country,
+          city: formData.city,
+          bio: formData.bio,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to update profile')
+
       setSaveMsg('✅ Profile updated successfully!')
       setIsEditing(false)
-      setTimeout(() => setSaveMsg(''), 3000)
-    }, 1000)
+    } catch (err) {
+      setSaveMsg(`❌ ${err instanceof Error ? err.message : 'Failed to update profile'}`)
+    } finally {
+      setSaving(false)
+      setTimeout(() => setSaveMsg(''), 4000)
+    }
   }
 
   async function handlePasswordUpdate(e: React.FormEvent) {
     e.preventDefault()
     if (!passwords.current) { setPassMsg('❌ Please enter your current password'); return }
     if (passwords.new !== passwords.confirm) { setPassMsg('❌ Passwords do not match'); return }
-    if (passwords.new.length < 6) { setPassMsg('❌ Password must be at least 6 characters'); return }
+    if (passwords.new.length < 8) { setPassMsg('❌ Password must be at least 8 characters'); return }
     if (passwords.current === passwords.new) { setPassMsg('❌ New password must be different from current'); return }
 
     setPassSaving(true)
     setPassMsg('')
 
-    // Simulate save
-    setTimeout(() => {
-      setPassSaving(false)
+    try {
+      const token = getToken()
+      const res = await fetch(`${BACKEND}/api/auth/change-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ currentPassword: passwords.current, newPassword: passwords.new }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to update password')
+
       setPassMsg('✅ Password updated successfully!')
       setPasswords({ current: '', new: '', confirm: '' })
+    } catch (err) {
+      setPassMsg(`❌ ${err instanceof Error ? err.message : 'Failed to update password'}`)
+    } finally {
+      setPassSaving(false)
       setTimeout(() => setPassMsg(''), 4000)
-    }, 1000)
+    }
+  }
+
+  async function handleLogout() {
+    setLoggingOut(true)
+    try {
+      const token = getToken()
+      await fetch(`${BACKEND}/api/auth/logout`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+    } catch {
+      // ignore network errors — clear the local session regardless
+    } finally {
+      clearToken()
+      router.push('/login')
+    }
   }
 
   const initials = `${formData.firstName.charAt(0)}${formData.lastName.charAt(0)}`.toUpperCase() || '?'
 
-  if (!mounted) return null
+  if (!mounted || !authChecked) return null
 
   return (
     <div className="profile-root" suppressHydrationWarning>
@@ -171,7 +220,7 @@ export default function ProfilePage() {
         <div className="profile-nav-container">
           <Link href="/" className="signin-left-logo text-left">
             <ScalesIcon style={{ width: 22, height: 22, color: '#c9a84c' }} />
-            <span className="signin-brand">MS Advocate</span>
+            <span className="signin-brand">EUVisaAdvice</span>
           </Link>
           <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: avatarUrl ? 'transparent' : 'linear-gradient(135deg, #c9a84c, #ab8c36)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '14px', color: '#fff', flexShrink: 0, overflow: 'hidden' }}>
             {avatarUrl
@@ -188,8 +237,8 @@ export default function ProfilePage() {
             {avatarUrl
               ? <img src={avatarUrl} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '18px' }} />
               : <div className="profile-avatar-inner">{initials}</div>}
-            <button className="profile-avatar-edit" onClick={() => fileInputRef.current?.click()} disabled={avatarUploading} title="Change photo">
-              {avatarUploading ? '...' : <CameraIcon />}
+            <button className="profile-avatar-edit" onClick={() => fileInputRef.current?.click()} title="Change photo">
+              <CameraIcon />
             </button>
             <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarChange} />
           </div>
@@ -205,9 +254,12 @@ export default function ProfilePage() {
 
           <div className="profile-header-actions">
             <Link href="/" className="profile-btn-secondary">Back to Home</Link>
-            <Link href="/chat" className="profile-btn-secondary">Assistant</Link>
+            <Link href="/legalchat" className="profile-btn-secondary">Assistant</Link>
             <button onClick={() => setIsEditing(!isEditing)} className="profile-btn-primary">
               {isEditing ? 'Cancel' : 'Edit Profile'}
+            </button>
+            <button onClick={handleLogout} disabled={loggingOut} className="profile-btn-secondary">
+              {loggingOut ? 'Logging out…' : 'Logout'}
             </button>
           </div>
         </div>
@@ -239,7 +291,7 @@ export default function ProfilePage() {
             ))}
           </nav>
           <div className="profile-sidebar-footer hide-mobile">
-            <Link href="/chat" className="assistant-card">
+            <Link href="/legalchat" className="assistant-card">
               <div className="assistant-dot"></div>
               <div className="assistant-info">
                 <strong>Legal AI</strong>
@@ -333,7 +385,7 @@ export default function ProfilePage() {
                   <div className="profile-field">
                     <label className="profile-label">New Password</label>
                     <div className="signin-input-wrap">
-                      <input type={showPass ? 'text' : 'password'} className="signin-input signin-input-padded" required value={passwords.new} onChange={e => setPasswords({ ...passwords, new: e.target.value })} placeholder="Min. 6 characters" />
+                      <input type={showPass ? 'text' : 'password'} className="signin-input signin-input-padded" required value={passwords.new} onChange={e => setPasswords({ ...passwords, new: e.target.value })} placeholder="Min. 8 characters" />
                       <button type="button" className="signin-eye-btn" onClick={() => setShowPass(!showPass)}><EyeIcon open={showPass} /></button>
                     </div>
                   </div>
@@ -362,27 +414,8 @@ export default function ProfilePage() {
                 <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#1a1a2e', marginBottom: '6px' }}>Payment History</h3>
                 <p style={{ fontSize: '14px', color: '#4a4a68', margin: 0 }}>View your past transactions and billing details.</p>
               </div>
-              <div style={{ overflowX: 'auto', background: '#fff', borderRadius: '16px', border: '1px solid #eee', padding: '8px' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '500px' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid #f0f0f0' }}>
-                      {['Date', 'Invoice ID', 'Package / Plan', 'Amount', 'Status'].map(h => (
-                        <th key={h} style={{ padding: '16px', fontSize: '14px', color: '#666', fontWeight: '600' }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td style={{ padding: '16px', fontSize: '15px', color: '#1a1a2e', fontWeight: '500', whiteSpace: 'nowrap' }}>May 09, 2026</td>
-                      <td style={{ padding: '16px', fontSize: '14px', color: '#666', whiteSpace: 'nowrap' }}>#INV-2026-001</td>
-                      <td style={{ padding: '16px', fontSize: '15px', color: '#1a1a2e', fontWeight: '500' }}>Premium Consultation</td>
-                      <td style={{ padding: '16px', fontSize: '15px', color: '#1a1a2e', fontWeight: '600' }}>$49.00</td>
-                      <td style={{ padding: '16px' }}>
-                        <span style={{ display: 'inline-block', padding: '4px 12px', background: '#e6f4ea', color: '#1e8e3e', borderRadius: '12px', fontSize: '12px', fontWeight: '600' }}>Paid</span>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div style={{ padding: '40px', background: '#fff', borderRadius: '16px', border: '1px solid #eee', textAlign: 'center' }}>
+                <p style={{ color: '#888', fontSize: '14px', margin: 0 }}>No billing history yet. Subscriptions and payments are coming soon.</p>
               </div>
             </div>
           )}

@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
@@ -9,25 +10,37 @@ import {
   InboxIcon,
   PaymentIcon,
   UsersIcon,
-  DocumentIcon
 } from '@/components/Icons'
+import { useSidebar } from '@/components/DashboardLayout'
+import { clearAdminToken } from '@/lib/adminAuth'
 
 interface SidebarProps {
   sidebarOpen: boolean
   setSidebarOpen: (open: boolean) => void
 }
 
+function initialsOf(firstName: string, lastName: string): string {
+  const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
+  return initials || '?'
+}
+
 export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const { adminUser } = useSidebar()
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  function handleLogout() {
+    clearAdminToken()
+    router.push('/admin/login')
+  }
 
   const navItems = [
     { label: 'Overview', icon: <BarChartIcon />, href: '/dashboard' },
-    { label: 'Chatbot', icon: <ChatBubbleIcon />, href: '/dashboard/chat' },
-    { label: 'Inbox', icon: <InboxIcon />, href: '/dashboard/inbox' },
+    { label: 'Packages', icon: <ChatBubbleIcon />, href: '/dashboard/packages' },
+    { label: 'Client Chats', icon: <InboxIcon />, href: '/dashboard/inbox' },
     { label: 'Payments', icon: <PaymentIcon />, href: '/dashboard/payments' },
-    { label: 'Clients', icon: <UsersIcon />, href: '/dashboard/clients' },
-    { label: 'Manage Pages', icon: <DocumentIcon />, href: '/dashboard/pages' },
+    { label: 'All Members', icon: <UsersIcon />, href: '/dashboard/clients' },
   ]
 
   return (
@@ -41,7 +54,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
         <div className="chat-sidebar-header">
           <div className="signin-left-logo text-left" style={{ marginBottom: '28px' }}>
             <ScalesIcon style={{ width: 22, height: 22 }} />
-            <span className="signin-brand">MS Advocate</span>
+            <span className="signin-brand">EUVisaAdvice</span>
           </div>
         </div>
 
@@ -79,14 +92,48 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
           })}
         </div>
 
-        <div className="chat-sidebar-footer" onClick={() => router.push('/profile')} style={{ cursor: 'pointer', marginTop: 'auto' }}>
-          <div className="user-avatar" style={{ border: '2px solid rgba(255,255,255,0.1)' }}>MA</div>
-          <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-            <span className="user-name">Admin</span>
-            <span style={{ fontSize: '10px', color: '#c9a84c', fontWeight: '600' }}>admin@ms.com</span>
-          </div>
-          <div style={{ color: 'rgba(255,255,255,0.3)', display: 'flex' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+        <div style={{ position: 'relative', marginTop: 'auto' }}>
+          {menuOpen && (
+            <button
+              onClick={handleLogout}
+              style={{
+                position: 'absolute',
+                bottom: '100%',
+                left: '16px',
+                right: '16px',
+                marginBottom: '8px',
+                padding: '12px 16px',
+                background: '#25232d',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: '10px',
+                color: '#e04848',
+                fontSize: '13px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              Logout
+            </button>
+          )}
+          <div className="chat-sidebar-footer" onClick={() => setMenuOpen((open) => !open)} style={{ cursor: 'pointer' }}>
+            <div className="user-avatar" style={{ border: '2px solid rgba(255,255,255,0.1)' }}>
+              {adminUser ? initialsOf(adminUser.firstName, adminUser.lastName) : '...'}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+              <span className="user-name">{adminUser ? `${adminUser.firstName} ${adminUser.lastName}`.trim() : 'Loading...'}</span>
+              <span style={{ fontSize: '10px', color: '#c9a84c', fontWeight: '600' }}>{adminUser?.email ?? ''}</span>
+            </div>
+            <div style={{ color: 'rgba(255,255,255,0.3)', display: 'flex' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points={menuOpen ? '15 18 9 12 15 6' : '9 18 15 12 9 6'} /></svg>
+            </div>
           </div>
         </div>
       </aside>

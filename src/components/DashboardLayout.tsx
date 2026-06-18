@@ -2,22 +2,34 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import Sidebar from '@/components/Sidebar'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { MenuIcon, BellIcon } from '@/components/Icons'
+import { getAdminToken, clearAdminToken } from '@/lib/adminAuth'
+
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3005'
 
 // ── Context ───────────────────────────────────────────────────────────────────
+
+export interface AdminUser {
+  firstName: string
+  lastName: string
+  email: string
+}
 
 interface SidebarContextType {
   sidebarOpen: boolean
   setSidebarOpen: (open: boolean) => void
+  adminUser: AdminUser | null
+  setAdminUser: (user: AdminUser | null) => void
 }
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined)
 
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [adminUser, setAdminUser] = useState<AdminUser | null>(null)
   return (
-    <SidebarContext.Provider value={{ sidebarOpen, setSidebarOpen }}>
+    <SidebarContext.Provider value={{ sidebarOpen, setSidebarOpen, adminUser, setAdminUser }}>
       {children}
     </SidebarContext.Provider>
   )
@@ -32,22 +44,48 @@ export function useSidebar() {
 // ── Layout Component ──────────────────────────────────────────────────────────
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
-  const { sidebarOpen, setSidebarOpen } = useSidebar()
+  const { sidebarOpen, setSidebarOpen, setAdminUser } = useSidebar()
   const pathname = usePathname()
+  const router = useRouter()
   const [mounted, setMounted] = useState(false)
+  const [authorized, setAuthorized] = useState(false)
 
   useEffect(() => {
     setMounted(true)
-  }, [])
 
-  if (!mounted) return null
+    const token = getAdminToken()
+    if (!token) {
+      router.push('/admin/login')
+      return
+    }
+
+    fetch(`${BACKEND}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(async (res) => {
+        if (!res.ok) throw new Error('Invalid session')
+        const data = await res.json()
+        if (data.user?.role !== 'admin') throw new Error('Not an admin')
+        setAdminUser({
+          firstName: data.user.firstName,
+          lastName: data.user.lastName,
+          email: data.user.email,
+        })
+        setAuthorized(true)
+      })
+      .catch(() => {
+        clearAdminToken()
+        router.push('/admin/login')
+      })
+  }, [router, setAdminUser])
+
+  if (!mounted || !authorized) return null
 
   const getPageTitle = () => {
     if (pathname === '/dashboard') return 'Dashboard Overview'
-    if (pathname === '/dashboard/chat') return 'Chatbot Packages'
-    if (pathname === '/dashboard/inbox') return 'Message Inbox'
+    if (pathname === '/dashboard/packages') return 'Chatbot Packages'
+    if (pathname === '/dashboard/inbox') return 'Client Chats'
     if (pathname === '/dashboard/payments') return 'Payments & Billing'
-    if (pathname === '/dashboard/clients') return 'Client Management'
+    if (pathname === '/dashboard/clients') return 'All Members'
+    if (pathname?.startsWith('/dashboard/clients/')) return 'Client Profile'
     if (pathname === '/dashboard/pages') return 'Manage Dynamic Pages'
     return 'Dashboard'
   }

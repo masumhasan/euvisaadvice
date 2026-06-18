@@ -16,9 +16,7 @@ const companyLinks = [
   { label: 'Terms of Service', href: '/terms-of-service' }
 ]
 
-export default function Footer({ user }: { user: any }) {
-  const ctaHref = user ? '/chat' : '/register'
-
+export default function Footer() {
   return (
     <footer className="footer">
       <div className="footer-grid">
@@ -29,15 +27,15 @@ export default function Footer({ user }: { user: any }) {
             <LogoIcon style={{ width: 32, height: 32 }} />
             <div>
               <div className="nav-logo-name">
-                MS ADVOC<span>ATE</span>
+                <span style={{ color: '#ffffff' }}>EU</span><span style={{ color: '#c9a84c' }}>VISA</span><span style={{ color: '#ffffff' }}>ADVICE</span>
               </div>
-              <div className="nav-logo-since">SINCE 2023</div>
+              <div className="nav-logo-since">SINCE 2026</div>
             </div>
           </div>
           <p className="footer-brand-desc">
             Expert legal services for expats and remote workers in Germany.
           </p>
-          <Link href={ctaHref} className="btn-sm">
+          <Link href="/legalchat" className="btn-sm">
             Start Consultation
           </Link>
         </div>
@@ -88,7 +86,7 @@ export default function Footer({ user }: { user: any }) {
 
       {/* Bottom bar */}
       <div className="footer-bottom">
-        <p>© 2026 MS Advocate. All rights reserved.</p>
+        <p>© 2026 EUVisaAdvice. All rights reserved.</p>
       </div>
     </footer>
   )

@@ -12,7 +12,7 @@ export default function SuccessPage() {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer)
-          router.push('/chat')
+          router.push('/client-chat')
           return 0
         }
         return prev - 1
@@ -35,7 +35,7 @@ export default function SuccessPage() {
         
         <h1 style={{ fontSize: '32px', fontWeight: '700', color: '#1a1a2e', marginBottom: '16px', letterSpacing: '-0.02em' }}>Payment Successful!</h1>
         <p style={{ fontSize: '16px', color: '#666', lineHeight: '1.6', marginBottom: '32px' }}>
-          Your registration is complete and your payment has been processed securely. Welcome to MS Advocate.
+          Your registration is complete and your payment has been processed securely. Welcome to EUVisaAdvice.
         </p>
         
         <div style={{ background: 'rgba(201, 168, 76, 0.06)', padding: '16px', borderRadius: '16px', marginBottom: '32px', border: '1px solid rgba(201, 168, 76, 0.15)' }}>
@@ -44,7 +44,7 @@ export default function SuccessPage() {
           </p>
         </div>
 
-        <button onClick={() => router.push('/chat')} style={{ padding: '16px 32px', background: '#1a1a2e', color: '#fff', borderRadius: '14px', fontWeight: '600', border: 'none', cursor: 'pointer', width: '100%', fontSize: '16px', transition: 'all 0.2s ease', boxShadow: '0 8px 16px rgba(26, 26, 46, 0.15)' }}>
+        <button onClick={() => router.push('/client-chat')} style={{ padding: '16px 32px', background: '#1a1a2e', color: '#fff', borderRadius: '14px', fontWeight: '600', border: 'none', cursor: 'pointer', width: '100%', fontSize: '16px', transition: 'all 0.2s ease', boxShadow: '0 8px 16px rgba(26, 26, 46, 0.15)' }}>
           Go to Chat Now
         </button>
       </div>

@@ -3,12 +3,47 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ChatIcon, EuroIcon, FolderIcon, ShieldIcon } from '@/components/Icons'
+import { getAdminToken } from '@/lib/adminAuth'
+
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3005'
+
+type ActivityItem = {
+  id: string
+  action: string
+  timestamp: string
+}
+
+function formatRelativeTime(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime()
+  const minutes = Math.floor(diffMs / 60000)
+  if (minutes < 1) return 'JUST NOW'
+  if (minutes < 60) return `${minutes}M AGO`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}H AGO`
+  const days = Math.floor(hours / 24)
+  return `${days}D AGO`
+}
 
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false)
+  const [activities, setActivities] = useState<ActivityItem[]>([])
+  const [activityLoading, setActivityLoading] = useState(true)
+  const [activityError, setActivityError] = useState('')
 
   useEffect(() => {
     setMounted(true)
+
+    const token = getAdminToken()
+    fetch(`${BACKEND}/api/admin/activity`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error('Failed to load activity')
+        const data = await res.json()
+        setActivities(data.activity)
+      })
+      .catch(() => setActivityError('Could not load recent activity. Please try again later.'))
+      .finally(() => setActivityLoading(false))
   }, [])
 
   if (!mounted) return null
@@ -18,17 +53,6 @@ export default function DashboardPage() {
     { label: 'MONTHLY REVENUE', value: '€4,260', icon: <EuroIcon className="text-[#c9a84c]" /> },
     { label: 'ACTIVE CASES', value: '38', icon: <FolderIcon className="text-[#c9a84c]" /> },
     { label: 'PENDING VERIFICATIONS', value: '7', icon: <ShieldIcon className="text-[#c9a84c]" /> },
-  ]
-
-  const activities = [
-    { id: 1, action: 'started legal consultation', time: '2M AGO' },
-    { id: 2, action: 'case update viewed', time: '15M AGO' },
-    { id: 3, action: 'New verification pending', time: '32M AGO' },
-    { id: 4, action: 'received €89', time: '1H AGO' },
-    { id: 5, action: 'existing client login', time: '2H AGO' },
-    { id: 6, action: 'legal advice purchased', time: '3H AGO' },
-    { id: 7, action: 'case update viewed', time: '4H AGO' },
-    { id: 8, action: 'verification approved', time: '5H AGO' },
   ]
 
   return (
@@ -77,11 +101,17 @@ export default function DashboardPage() {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', marginTop: '32px' }}>
-          {activities.map((activity) => (
+          {activityLoading ? (
+            <div style={{ textAlign: 'center', color: 'rgba(0,0,0,0.4)', fontSize: '14px' }}>Loading...</div>
+          ) : activityError ? (
+            <div style={{ textAlign: 'center', color: '#c53030', fontSize: '14px' }}>{activityError}</div>
+          ) : activities.length === 0 ? (
+            <div style={{ textAlign: 'center', color: 'rgba(0,0,0,0.4)', fontSize: '14px' }}>No recent activity.</div>
+          ) : activities.map((activity) => (
             <div key={activity.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '14.5px' }}>
               <span style={{ color: '#434347ff', fontWeight: '500' }}>{activity.action}</span>
               <span style={{ color: 'rgba(0,0,0,0.3)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.15em', fontSize: '11px' }}>
-                {activity.time}
+                {formatRelativeTime(activity.timestamp)}
               </span>
             </div>
           ))}
@@ -91,7 +121,7 @@ export default function DashboardPage() {
       {/* Footer inside content area */}
       <footer style={{ marginTop: 'auto', paddingTop: '40px', paddingBottom: '10px' }}>
         <p style={{ fontSize: '11px', color: 'rgba(0,0,0,0.2)', fontWeight: '600', textAlign: 'center' }}>
-          &copy; {new Date().getFullYear()} MS Advocate. All rights reserved.
+          &copy; {new Date().getFullYear()} EUVisaAdvice. All rights reserved.
         </p>
       </footer>
 

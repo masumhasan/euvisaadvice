@@ -1,18 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import {
-  LogoIcon,
   ScalesIcon,
   DocumentIcon,
   GlobeIcon,
   ShieldIcon,
-  MapPinIcon,
-  PhoneIcon,
-  MailIcon,
 } from '@/components/Icons'
 
 /* ─── Stat Card ─────────────────────────────────────────────── */
@@ -37,9 +32,7 @@ function StatCard({
 }
 
 /* ─── Hero ──────────────────────────────────────────────────── */
-function Hero({ user }: { user: any }) {
-  const ctaHref = user ? '/chat' : '/register'
-  
+function Hero() {
   return (
     <section className="hero">
       <div className="hero-inner">
@@ -58,19 +51,12 @@ function Hero({ user }: { user: any }) {
           </p>
 
           <div className="hero-cta">
-            <Link href={ctaHref} className="btn-primary">
+            <Link href="/legalchat" className="btn-primary">
               Get Legal Advice
             </Link>
-            {!user && (
-              <Link href="/login" className="btn-outline">
-                Existing Client Login
-              </Link>
-            )}
-            {user && (
-              <Link href="/profile" className="btn-outline">
-                View My Profile
-              </Link>
-            )}
+            <Link href="/client-chat" className="btn-outline">
+              Existing Client Login
+            </Link>
           </div>
         </div>
 
@@ -106,35 +92,15 @@ function Hero({ user }: { user: any }) {
   )
 }
 
-/* ─── Footer ────────────────────────────────────────────────── */
-const serviceLinks = [
-  { label: 'Immigration Law', href: '/immigration-law' },
-  { label: 'Tax Law', href: '/tax-law' },
-  { label: 'Business Law', href: '/business-law' },
-  { label: 'Legal Consultation', href: '/legal-consultation' }
-]
-const companyLinks = [
-  { label: 'About Us', href: '/about-us' },
-  { label: 'How It Works', href: '/how-it-works' },
-  { label: 'Privacy Policy', href: '/privacy-policy' },
-  { label: 'Terms of Service', href: '/terms-of-service' }
-]
-
 /* ─── Page ──────────────────────────────────────────────────── */
 export default function HomePage() {
-  const [user, setUser] = useState<any>(null)
-
-  useEffect(() => {
-    // Backend removed: User defaults to null
-  }, [])
-
   return (
     <>
       <Navbar />
       <main>
-        <Hero user={user} />
+        <Hero />
       </main>
-      <Footer user={user} />
+      <Footer />
     </>
   )
 }

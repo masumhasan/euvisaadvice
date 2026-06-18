@@ -1,8 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ScalesIcon } from '@/components/Icons'
+import { setToken } from '@/lib/auth'
+
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3005'
+
 /* ── Step Icons ───────────────────────────────────── */
 function UserIcon() {
   return (
@@ -18,15 +23,6 @@ function ShieldCheckIcon() {
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
       <path d="m9 12 2 2 4-4" />
-    </svg>
-  )
-}
-
-function CardIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect width="20" height="14" x="2" y="5" rx="2" />
-      <line x1="2" x2="22" y1="10" y2="10" />
     </svg>
   )
 }
@@ -82,16 +78,18 @@ const features = [
   'Encrypted document vault',
 ]
 
-type Step = 'account' | 'verify' | 'payment'
+type Step = 'account' | 'verify'
 
 export default function RegisterPage() {
+  const router = useRouter()
   const [mounted, setMounted] = useState(false)
   const [step, setStep] = useState<Step>('account')
   const [showPassword, setShowPassword] = useState(false)
   const [showPasswordCon, setShowPasswordCon] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [clientSecret, setClientSecret] = useState('')
+  const [resending, setResending] = useState(false)
+  const [resendMessage, setResendMessage] = useState('')
 
   useEffect(() => {
     setMounted(true)
@@ -105,26 +103,8 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
-  const [packages, setPackages] = useState<any[]>([])
-  const [selectedPackage, setSelectedPackage] = useState<any>(null)
-
-  useEffect(() => {
-    // Backend removed: Setting mock packages
-    setPackages([
-      { id: 1, name: 'Basic Consultation', price: 49.99, description: '30 min initial consultation' },
-      { id: 2, name: 'Premium Review', price: 149.99, description: 'Document review + 1hr consultation' }
-    ])
-  }, [])
 
   if (!mounted) return null
-
-  const handleStepChange = (next: Step) => {
-    setLoading(true)
-    setTimeout(() => {
-      setStep(next)
-      setLoading(false)
-    }, 800)
-  }
 
   const handleAccountSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -134,12 +114,22 @@ export default function RegisterPage() {
       return
     }
     setLoading(true)
-    
-    // Backend removed: Simulate signup
-    setTimeout(() => {
+
+    try {
+      const res = await fetch(`${BACKEND}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, firstName, lastName, phone, country }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Registration failed')
+
+      setStep('verify')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Registration failed')
+    } finally {
       setLoading(false)
-      handleStepChange('verify') // or 'payment' if you prefer skipping OTP
-    }, 1000)
+    }
   }
 
   const handleOtpInput = (index: number, val: string) => {
@@ -153,13 +143,55 @@ export default function RegisterPage() {
     }
   }
 
+  const handleVerifySubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+
+    try {
+      const res = await fetch(`${BACKEND}/api/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp: otp.join('') }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Verification failed')
+
+      setToken(data.token)
+      router.push('/legalchat')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Verification failed')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleResendOtp = async () => {
+    setResending(true)
+    setResendMessage('')
+    try {
+      const res = await fetch(`${BACKEND}/api/auth/resend-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to resend code')
+      setResendMessage('A new code has been sent to your email.')
+    } catch (err) {
+      setResendMessage(err instanceof Error ? err.message : 'Failed to resend code')
+    } finally {
+      setResending(false)
+    }
+  }
+
   return (
     <div className="signin-root" suppressHydrationWarning>
       <div className="signin-left">
         <div className="signin-left-content">
           <div className="signin-left-logo text-left">
             <ScalesIcon style={{ width: 26, height: 26 }} />
-            <span className="signin-brand">MS Advocate</span>
+            <span className="signin-brand">EUVisaAdvice</span>
           </div>
           <div>
             <div className="signin-shield-icon">
@@ -193,26 +225,21 @@ export default function RegisterPage() {
               <div className="step-label-horiz"><span className="step-num-horiz">Step 01</span><span className="step-title-horiz">Account</span></div>
             </div>
             <div className="step-connector" />
-            <div className={`step-item-horiz ${step === 'verify' ? 'active' : ''} ${step === 'payment' ? 'completed' : ''}`}>
-              <StepMark active={step === 'verify'} completed={step === 'payment'} icon={<ShieldCheckIcon />} />
+            <div className={`step-item-horiz ${step === 'verify' ? 'active' : ''}`}>
+              <StepMark active={step === 'verify'} completed={false} icon={<ShieldCheckIcon />} />
               <div className="step-label-horiz"><span className="step-num-horiz">Step 02</span><span className="step-title-horiz">Verify</span></div>
-            </div>
-            <div className="step-connector" />
-            <div className={`step-item-horiz ${step === 'payment' ? 'active' : ''}`}>
-              <StepMark active={step === 'payment'} completed={false} icon={<CardIcon />} />
-              <div className="step-label-horiz"><span className="step-num-horiz">Step 03</span><span className="step-title-horiz">Payment</span></div>
             </div>
           </div>
 
           <div className="signin-mobile-logo">
             <ScalesIcon style={{ width: 24, height: 24 }} />
-            <span className="signin-brand" style={{ color: '#1a1a2e' }}>MS Advocate</span>
+            <span className="signin-brand" style={{ color: '#1a1a2e' }}>EUVisaAdvice</span>
           </div>
 
           {step === 'account' && (
             <div className="fade-in">
               <h2 className="signin-form-heading">Create Account</h2>
-              <p className="signin-form-sub">Provide your details to register with MS Advocate</p>
+              <p className="signin-form-sub">Provide your details to register with EUVisaAdvice</p>
               <form className="signin-form" onSubmit={handleAccountSubmit}>
                 <div className="signin-grid">
                   <div className="signin-field">
@@ -229,24 +256,24 @@ export default function RegisterPage() {
                   <input type="email" required placeholder="name@example.com" className="signin-input" value={email} onChange={(e) => setEmail(e.target.value)} />
                 </div>
                 <div className="signin-field">
-                  <label className="signin-label">Phone Number</label>
-                  <input type="tel" required placeholder="+1 234 567 890" className="signin-input" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                  <label className="signin-label">Phone Number (optional)</label>
+                  <input type="tel" placeholder="+1 234 567 890" className="signin-input" value={phone} onChange={(e) => setPhone(e.target.value)} />
                 </div>
                 <div className="signin-field">
-                  <label className="signin-label">Country</label>
-                  <input type="text" required placeholder="Germany" className="signin-input" value={country} onChange={(e) => setCountry(e.target.value)} />
+                  <label className="signin-label">Country (optional)</label>
+                  <input type="text" placeholder="Germany" className="signin-input" value={country} onChange={(e) => setCountry(e.target.value)} />
                 </div>
                 <div className="signin-field">
                   <label className="signin-label">Password</label>
                   <div className="signin-input-wrap">
-                    <input type={showPassword ? 'text' : 'password'} required placeholder="••••••••" className="signin-input signin-input-padded" value={password} onChange={(e) => setPassword(e.target.value)} />
+                    <input type={showPassword ? 'text' : 'password'} required minLength={8} placeholder="••••••••" className="signin-input signin-input-padded" value={password} onChange={(e) => setPassword(e.target.value)} />
                     <button type="button" className="signin-eye-btn" onClick={() => setShowPassword(!showPassword)}><EyeIcon open={showPassword} /></button>
                   </div>
                 </div>
                 <div className="signin-field">
                   <label className="signin-label">Confirm Password</label>
                   <div className="signin-input-wrap">
-                    <input type={showPasswordCon ? 'text' : 'password'} required placeholder="••••••••" className="signin-input signin-input-padded" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                    <input type={showPasswordCon ? 'text' : 'password'} required minLength={8} placeholder="••••••••" className="signin-input signin-input-padded" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
                     <button type="button" className="signin-eye-btn" onClick={() => setShowPasswordCon(!showPasswordCon)}><EyeIcon open={showPasswordCon} /></button>
                   </div>
                 </div>
@@ -259,85 +286,22 @@ export default function RegisterPage() {
           {step === 'verify' && (
             <div className="fade-in">
               <h2 className="signin-form-heading">Verify OTP</h2>
-              <p className="signin-form-sub">Enter the 6-digit code sent to your email</p>
-              <form className="signin-form" onSubmit={async (e) => {
-                e.preventDefault();
-                setLoading(true);
-                setError('');
-                // Backend removed: Simulate OTP success
-                setTimeout(() => {
-                  setLoading(false);
-                  handleStepChange('payment');
-                }, 1000)
-              }}>
+              <p className="signin-form-sub">Enter the 6-digit code sent to {email}</p>
+              <form className="signin-form" onSubmit={handleVerifySubmit}>
                 <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '8px' }}>
                   {otp.map((d, i) => (
                     <input key={i} id={`otp-${i}`} type="text" maxLength={1} className="signin-input" style={{ width: '44px', textAlign: 'center', fontWeight: 'bold' }} value={d} onChange={(e) => handleOtpInput(i, e.target.value)} />
                   ))}
                 </div>
                 {error && <p style={{ color: '#ff4d4d', fontSize: '14px', marginTop: '10px', textAlign: 'center' }}>{error}</p>}
+                {resendMessage && <p style={{ color: '#666', fontSize: '13px', marginTop: '10px', textAlign: 'center' }}>{resendMessage}</p>}
                 <button type="submit" className={`signin-submit-btn ${loading ? 'loading' : ''}`} disabled={loading}>{loading ? 'Verifying...' : 'Verify Email'}</button>
                 <p className="signin-new-client" style={{ marginTop: '16px' }}>
-                  Didn&apos;t get the code? <button type="button" className="signin-gold-link" style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => {
-                    alert('OTP resent to your email.');
-                  }}>Resend OTP</button>
+                  Didn&apos;t get the code? <button type="button" disabled={resending} className="signin-gold-link" style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={handleResendOtp}>
+                    {resending ? 'Resending...' : 'Resend OTP'}
+                  </button>
                 </p>
               </form>
-            </div>
-          )}
-
-          {/* ────── STEP 3: PAYMENT ────── */}
-          {step === 'payment' && (
-            <div className="fade-in">
-              <h2 className="signin-form-heading">Payment Detail</h2>
-              <p className="signin-form-sub">Select a package and proceed to secure payment</p>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '24px' }}>
-                {packages.length === 0 ? (
-                  <p style={{ color: '#666' }}>Loading available packages...</p>
-                ) : (
-                  packages.map(pkg => (
-                    <div
-                      key={pkg.id}
-                      onClick={() => {
-                        setSelectedPackage(pkg)
-                        setClientSecret('dummy-secret')
-                      }}
-                      style={{
-                        padding: '20px',
-                        borderRadius: '12px',
-                        border: selectedPackage?.id === pkg.id ? '2px solid #c9a84c' : '1px solid rgba(0,0,0,0.1)',
-                        background: selectedPackage?.id === pkg.id ? 'rgba(201, 168, 76, 0.05)' : '#fff',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease'
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <span style={{ color: '#1a1a2e', fontWeight: '600', fontSize: '16px' }}>{pkg.name}</span>
-                        <span style={{ color: '#c9a84c', fontWeight: 'bold', fontSize: '18px' }}>${pkg.price.toFixed(2)}</span>
-                      </div>
-                      <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>{pkg.description}</p>
-                    </div>
-                  ))
-                )}
-              </div>
-
-              {error && <p style={{ color: '#ff4d4d', fontSize: '14px', marginTop: '10px', textAlign: 'center' }}>{error}</p>}
-
-              {clientSecret && (
-                <div style={{ marginTop: '24px' }}>
-                  <div style={{ padding: '20px', background: '#fff', borderRadius: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
-                    <p>Payment module removed.</p>
-                    <button 
-                      onClick={() => window.location.href = '/success'} 
-                      className="signin-submit-btn" 
-                      style={{ marginTop: '16px' }}
-                    >
-                      Simulate Payment Success
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
@@ -346,7 +310,6 @@ export default function RegisterPage() {
             <div style={{ display: 'flex', gap: '8px', padding: '0 12px' }}>
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: step === 'account' ? '#c9a84c' : '#ddd' }} />
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: step === 'verify' ? '#c9a84c' : '#ddd' }} />
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: step === 'payment' ? '#c9a84c' : '#ddd' }} />
             </div>
             <div className="signin-divider-line" />
           </div>

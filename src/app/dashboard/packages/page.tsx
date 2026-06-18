@@ -2,120 +2,298 @@
 
 import { useState, useEffect } from 'react'
 
-type Package = {
+import { PlusIcon, TrashIcon } from '@/components/Icons'
+import { getAdminToken } from '@/lib/adminAuth'
+
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3005'
+
+// ── Types ───────────────────────────────────────────────────────────────────────
+
+interface Package {
   id: string
   name: string
-  description: string
   price: number
+  description: string
+  createdAt: string
 }
 
-export default function ManagePackagesPage() {
+// ── Page Component ──────────────────────────────────────────────────────────────
+
+export default function ChatbotPackagesPage() {
+  const [mounted, setMounted] = useState(false)
+
+  // Package Management State
   const [packages, setPackages] = useState<Package[]>([])
   const [loading, setLoading] = useState(true)
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [price, setPrice] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [showAddForm, setShowAddForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
 
-  const fetchPackages = async () => {
-    setLoading(true)
-    setPackages([]) // Mocked empty list
-    setLoading(false)
-  }
+  // Form State
+  const [name, setName] = useState('')
+  const [price, setPrice] = useState('')
+  const [description, setDescription] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
 
   useEffect(() => {
+    setMounted(true)
     fetchPackages()
   }, [])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (editingId) {
-      setPackages(packages.map(p => p.id === editingId ? { ...p, name, description, price: parseFloat(price) } : p))
-      setEditingId(null)
-    } else {
-      setPackages([...packages, { id: Math.random().toString(), name, description, price: parseFloat(price) }])
+  async function fetchPackages() {
+    setLoading(true)
+    setError(null)
+    try {
+      const token = getAdminToken()
+      const res = await fetch(`${BACKEND}/api/admin/packages`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) throw new Error('Failed to load packages')
+      const data = await res.json()
+      setPackages(data.packages)
+    } catch {
+      setError('Could not load packages. Please try again.')
+    } finally {
+      setLoading(false)
     }
-    
-    setName('')
-    setDescription('')
-    setPrice('')
   }
 
-  const handleEdit = (pkg: Package) => {
+  async function handleSavePackage(e: React.FormEvent) {
+    e.preventDefault()
+    setIsSubmitting(true)
+    setFormError(null)
+
+    const body = { name, price: parseFloat(price), description }
+    const token = getAdminToken()
+
+    try {
+      if (editingId) {
+        const res = await fetch(`${BACKEND}/api/admin/packages/${editingId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify(body),
+        })
+        if (!res.ok) throw new Error('Failed to update package')
+        const data = await res.json()
+        setPackages(packages.map(p => p.id === editingId ? data.package : p))
+      } else {
+        const res = await fetch(`${BACKEND}/api/admin/packages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify(body),
+        })
+        if (!res.ok) throw new Error('Failed to create package')
+        const data = await res.json()
+        setPackages([data.package, ...packages])
+      }
+      resetForm()
+    } catch {
+      setFormError('Could not save package. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  function resetForm() {
+    setName('')
+    setPrice('')
+    setDescription('')
+    setEditingId(null)
+    setShowAddForm(false)
+    setFormError(null)
+  }
+
+  function handleEditClick(pkg: Package) {
     setEditingId(pkg.id)
     setName(pkg.name)
-    setDescription(pkg.description || '')
     setPrice(pkg.price.toString())
+    setDescription(pkg.description)
+    setShowAddForm(true)
   }
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this package?')) {
+  async function handleDeletePackage(id: string) {
+    if (!confirm('Are you sure you want to delete this package?')) return
+    const token = getAdminToken()
+    try {
+      const res = await fetch(`${BACKEND}/api/admin/packages/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) throw new Error('Failed to delete package')
       setPackages(packages.filter(p => p.id !== id))
+    } catch {
+      alert('Could not delete package. Please try again.')
     }
   }
 
+  if (!mounted) return null
+
   return (
-    <div style={{ padding: '40px', maxWidth: '1000px', margin: '0 auto' }}>
-      <h1 style={{ fontSize: '28px', fontWeight: '600', marginBottom: '24px', color: '#1a1a2e' }}>Manage Packages</h1>
-      
-      <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.03)', marginBottom: '32px' }}>
-        <h2 style={{ fontSize: '18px', fontWeight: '500', marginBottom: '16px' }}>{editingId ? 'Edit Package' : 'Add New Package'}</h2>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
-          <div style={{ flex: '1 1 200px' }}>
-            <label style={{ display: 'block', fontSize: '14px', marginBottom: '8px', color: '#666' }}>Package Name</label>
-            <input required type="text" value={name} onChange={e => setName(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #ddd' }} />
-          </div>
-          <div style={{ flex: '2 1 300px' }}>
-            <label style={{ display: 'block', fontSize: '14px', marginBottom: '8px', color: '#666' }}>Description</label>
-            <input type="text" value={description} onChange={e => setDescription(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #ddd' }} />
-          </div>
-          <div style={{ flex: '1 1 100px' }}>
-            <label style={{ display: 'block', fontSize: '14px', marginBottom: '8px', color: '#666' }}>Price ($)</label>
-            <input required type="number" min="0" step="0.01" value={price} onChange={e => setPrice(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #ddd' }} />
-          </div>
-          <div style={{ flex: '0 0 auto' }}>
-            <button type="submit" style={{ padding: '10px 24px', background: '#1a1a2e', color: '#fff', borderRadius: '8px', fontWeight: '500', border: 'none', cursor: 'pointer' }}>
-              {editingId ? 'Update' : 'Add'}
-            </button>
-            {editingId && (
-              <button type="button" onClick={() => { setEditingId(null); setName(''); setDescription(''); setPrice('') }} style={{ padding: '10px 24px', background: '#f5f5f5', color: '#333', borderRadius: '8px', fontWeight: '500', border: 'none', cursor: 'pointer', marginLeft: '8px' }}>
-                Cancel
-              </button>
-            )}
-          </div>
-        </form>
+    <div style={{ flex: 1, padding: '40px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h2 style={{ fontSize: '20px', fontWeight: '500', color: '#1a1a2e', margin: 0 }}>Manage Packages</h2>
+          <p style={{ color: 'rgba(0,0,0,0.4)', fontSize: '14px', marginTop: '4px' }}>Create and update your chatbot pricing tiers.</p>
+        </div>
+        <button
+          onClick={() => {
+            if (showAddForm) resetForm()
+            else setShowAddForm(true)
+          }}
+          onMouseEnter={(e) => {
+            ; (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#2a2936'
+              ; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)'
+          }}
+          onMouseLeave={(e) => {
+            ; (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#1a1926'
+              ; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)'
+          }}
+          style={{
+            backgroundColor: '#1a1926',
+            color: '#ffffff',
+            border: 'none',
+            padding: '12px 24px',
+            borderRadius: '12px',
+            fontWeight: '600',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            fontSize: "12px",
+            whiteSpace: 'nowrap',
+            width: "auto",
+            flexShrink: 0,
+          }}
+        >
+          <PlusIcon style={{ width: "12px", height: "12px" }} />
+          {showAddForm ? 'Cancel' : 'Add Package'}
+        </button>
       </div>
 
-      <div style={{ background: '#fff', borderRadius: '16px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.03)', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ background: '#f9f9fa', borderBottom: '1px solid #eee', textAlign: 'left' }}>
-              <th style={{ padding: '16px 24px', fontSize: '14px', color: '#666', fontWeight: '500' }}>Name</th>
-              <th style={{ padding: '16px 24px', fontSize: '14px', color: '#666', fontWeight: '500' }}>Description</th>
-              <th style={{ padding: '16px 24px', fontSize: '14px', color: '#666', fontWeight: '500' }}>Price</th>
-              <th style={{ padding: '16px 24px', fontSize: '14px', color: '#666', fontWeight: '500', textAlign: 'right' }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td colSpan={4} style={{ padding: '24px', textAlign: 'center', color: '#999' }}>Loading packages...</td></tr>
-            ) : packages.length === 0 ? (
-              <tr><td colSpan={4} style={{ padding: '24px', textAlign: 'center', color: '#999' }}>No packages found. Add one above.</td></tr>
-            ) : packages.map(pkg => (
-              <tr key={pkg.id} style={{ borderBottom: '1px solid #eee' }}>
-                <td style={{ padding: '16px 24px', fontWeight: '500', color: '#1a1a2e' }}>{pkg.name}</td>
-                <td style={{ padding: '16px 24px', color: '#666' }}>{pkg.description}</td>
-                <td style={{ padding: '16px 24px', fontWeight: '500', color: '#c9a84c' }}>${pkg.price.toFixed(2)}</td>
-                <td style={{ padding: '16px 24px', textAlign: 'right' }}>
-                  <button onClick={() => handleEdit(pkg)} style={{ background: 'none', border: 'none', color: '#4a90e2', cursor: 'pointer', marginRight: '16px', fontWeight: '500' }}>Edit</button>
-                  <button onClick={() => handleDelete(pkg.id)} style={{ background: 'none', border: 'none', color: '#e24a4a', cursor: 'pointer', fontWeight: '500' }}>Delete</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {showAddForm && (
+        <div style={{
+          background: '#ffffff',
+          padding: '32px',
+          borderRadius: '24px',
+          boxShadow: '0 4px 15px rgba(0,0,0,0.02)',
+          border: '1px solid rgba(0,0,0,0.03)'
+        }}>
+          <form onSubmit={handleSavePackage} style={{ display: 'grid', gap: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label style={{ fontSize: '11.5px', color: 'rgba(0,0,0,0.35)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Package Name</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Basic Consultation"
+                  required
+                  style={{ padding: '12px 16px', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.1)', fontSize: '15px', outline: 'none', color: '#000000' }}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label style={{ fontSize: '11.5px', color: 'rgba(0,0,0,0.35)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Price (€)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="e.g. 49.99"
+                  required
+                  style={{ padding: '12px 16px', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.1)', fontSize: '15px', outline: 'none', color: '#000000' }}
+                />
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '11.5px', color: 'rgba(0,0,0,0.35)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Description</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Describe what's included..."
+                rows={4}
+                required
+                style={{ padding: '12px 16px', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.1)', fontSize: '15px', resize: 'none', outline: 'none', color: '#000000' }}
+              />
+            </div>
+            {formError && (
+              <div style={{ padding: '12px 16px', background: '#fff5f5', border: '1px solid #fed7d7', borderRadius: '10px', color: '#c53030', fontSize: '14px' }}>
+                {formError}
+              </div>
+            )}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              style={{
+                backgroundColor: '#c9a84c',
+                color: '#1a1926',
+                border: 'none',
+                padding: '14px',
+                borderRadius: '12px',
+                fontWeight: '700',
+                cursor: isSubmitting ? 'not-allowed' : 'pointer'
+              }}
+            >
+              {isSubmitting ? 'Saving...' : (editingId ? 'Update Package' : 'Save Package')}
+            </button>
+          </form>
+        </div>
+      )}
+
+      {error && (
+        <div style={{ padding: '16px', background: '#fff5f5', border: '1px solid #fed7d7', borderRadius: '12px', color: '#c53030', fontSize: '14px' }}>
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '60px', color: 'rgba(0,0,0,0.3)' }}>Loading packages...</div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '24px' }}>
+          {packages.map((pkg) => (
+            <div key={pkg.id} style={{
+              background: '#ffffff',
+              padding: '28px',
+              borderRadius: '24px',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.02)',
+              border: '1px solid rgba(0,0,0,0.03)',
+              display: 'flex',
+              flexDirection: 'column'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a1a2e', margin: 0 }}>{pkg.name}</h3>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button onClick={() => handleEditClick(pkg)} style={{ background: 'none', border: 'none', color: '#c9a84c', cursor: 'pointer', padding: '4px' }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                  </button>
+                  <button onClick={() => handleDeletePackage(pkg.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px', display: 'flex' }}>
+                    <TrashIcon style={{ width: "16px" }} />
+                  </button>
+                </div>
+              </div>
+              <div style={{ fontSize: '32px', fontWeight: '600', color: '#1a1a2e', marginBottom: '12px' }}>
+                €{pkg.price}
+              </div>
+              <p style={{ color: 'rgba(0,0,0,0.5)', fontSize: '14px', lineHeight: '1.6', margin: 0, flex: 1 }}>
+                {pkg.description}
+              </p>
+              <div style={{ marginTop: '24px', fontSize: '10px', color: 'rgba(0,0,0,0.3)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                CREATED ON {new Date(pkg.createdAt).toLocaleDateString()}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Footer inside content area */}
+      <footer style={{ marginTop: 'auto', paddingTop: '40px', paddingBottom: '10px' }}>
+        <p style={{ fontSize: '11px', color: 'rgba(0,0,0,0.2)', fontWeight: '600', textAlign: 'center' }}>
+          &copy; {new Date().getFullYear()} EUVisaAdvice. All rights reserved.
+        </p>
+      </footer>
+
     </div>
   )
 }
