@@ -412,6 +412,77 @@ function VerifyForm({
   )
 }
 
+/* ── Thinking Indicator ──────────────────────────────────── */
+const THINKING_STEPS = [
+  'Scanning for new events…',
+  'Isolating your communications…',
+  'Searching database with your email…',
+  'Retrieving data from server…',
+  'Analyzing case history…',
+  'Processing email context…',
+  'Reviewing correspondence timeline…',
+  'Preparing your response…',
+]
+
+function ThinkingIndicator() {
+  const [step, setStep] = useState(0)
+
+  useEffect(() => {
+    const id = setInterval(() => setStep(s => (s + 1) % THINKING_STEPS.length), 2000)
+    return () => clearInterval(id)
+  }, [])
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+      <div
+        className="message-bubble message-bot"
+        style={{
+          border: '1px solid #eee',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '14px',
+          padding: '14px 20px',
+          minWidth: '260px',
+        }}
+      >
+        {/* Radar pulse */}
+        <div style={{ position: 'relative', width: '20px', height: '20px', flexShrink: 0 }}>
+          <div style={{
+            position: 'absolute', inset: 0,
+            borderRadius: '50%',
+            border: '2px solid #c9a84c',
+            animation: 'radarRing 1.6s ease-out infinite',
+          }} />
+          <div style={{
+            position: 'absolute', inset: '5px',
+            borderRadius: '50%',
+            background: '#c9a84c',
+          }} />
+        </div>
+
+        {/* Cycling status text */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+          <span style={{
+            fontSize: '10px', fontWeight: '700', color: '#c9a84c',
+            textTransform: 'uppercase', letterSpacing: '0.09em',
+          }}>
+            Working
+          </span>
+          <span
+            key={step}
+            style={{
+              fontSize: '13px', color: '#555',
+              animation: 'fadeSlideIn 0.35s ease-out forwards',
+            }}
+          >
+            {THINKING_STEPS[step]}
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /* ── Chat Area ───────────────────────────────────────────── */
 function ChatArea({ token, onSignOut }: { token: string; onSignOut: () => void }) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -510,21 +581,7 @@ function ChatArea({ token, onSignOut }: { token: string; onSignOut: () => void }
           </div>
         ))}
 
-        {loading && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-            <div className="message-bubble message-bot" style={{ border: '1px solid #eee' }}>
-              <span style={{ display: 'flex', gap: '4px', alignItems: 'center', padding: '2px 0' }}>
-                {[0, 1, 2].map(i => (
-                  <span key={i} style={{
-                    width: '6px', height: '6px', borderRadius: '50%', background: '#c9a84c',
-                    display: 'inline-block',
-                    animation: `typingDot 1.2s ease-in-out ${i * 0.2}s infinite`,
-                  }} />
-                ))}
-              </span>
-            </div>
-          </div>
-        )}
+        {loading && <ThinkingIndicator />}
 
         {error && (
           <div role="alert" style={{
@@ -588,9 +645,13 @@ function ChatArea({ token, onSignOut }: { token: string; onSignOut: () => void }
       </div>
 
       <style>{`
-        @keyframes typingDot {
-          0%, 60%, 100% { opacity: 0.2; transform: translateY(0); }
-          30% { opacity: 1; transform: translateY(-4px); }
+        @keyframes radarRing {
+          0%   { transform: scale(0.8); opacity: 1; }
+          100% { transform: scale(2.2); opacity: 0; }
+        }
+        @keyframes fadeSlideIn {
+          from { opacity: 0; transform: translateY(5px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </>

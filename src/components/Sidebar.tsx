@@ -10,7 +10,6 @@ import {
   InboxIcon,
   PaymentIcon,
   UsersIcon,
-  DocumentIcon
 } from '@/components/Icons'
 import { useSidebar } from '@/components/DashboardLayout'
 import { clearAdminToken } from '@/lib/adminAuth'
@@ -42,7 +41,6 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
     { label: 'Client Chats', icon: <InboxIcon />, href: '/dashboard/inbox' },
     { label: 'Payments', icon: <PaymentIcon />, href: '/dashboard/payments' },
     { label: 'All Members', icon: <UsersIcon />, href: '/dashboard/clients' },
-    { label: 'Manage Pages', icon: <DocumentIcon />, href: '/dashboard/pages' },
   ]
 
   return (
