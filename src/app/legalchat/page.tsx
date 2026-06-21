@@ -167,6 +167,7 @@ export default function ChatPage() {
   const [authChecked, setAuthChecked] = useState(false)
   const [userName, setUserName] = useState('')
   const [userEmail, setUserEmail] = useState('')
+  const [userPlan, setUserPlan] = useState('')
   const [limitNotice, setLimitNotice] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -208,6 +209,8 @@ export default function ChatPage() {
         const fullName = `${data.user?.firstName ?? ''} ${data.user?.lastName ?? ''}`.trim()
         setUserName(fullName || data.user?.email || '')
         setUserEmail(data.user?.email || '')
+        const plan = data.user?.subscriptionPlan ?? ''
+        setUserPlan(plan ? plan.charAt(0).toUpperCase() + plan.slice(1) + ' Member' : '')
         setAuthChecked(true)
         return loadConversations()
       })
@@ -430,6 +433,11 @@ export default function ChatPage() {
           <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
             <span className="user-name">{userName || 'Account'}</span>
             <span style={{ fontSize: '10px', color: '#c9a84c', fontWeight: '600' }}>{userEmail}</span>
+            {userPlan && (
+              <span style={{ fontSize: '9px', color: '#6b7280', fontWeight: '700', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 2 }}>
+                {userPlan}
+              </span>
+            )}
           </div>
           <div style={{ color: 'rgba(255,255,255,0.3)', display: 'flex' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
