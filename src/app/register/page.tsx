@@ -90,6 +90,7 @@ export default function RegisterPage() {
   const [error, setError] = useState('')
   const [resending, setResending] = useState(false)
   const [resendMessage, setResendMessage] = useState('')
+  const [devOtp, setDevOtp] = useState<string | undefined>()
 
   useEffect(() => {
     setMounted(true)
@@ -124,6 +125,7 @@ export default function RegisterPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Registration failed')
 
+      setDevOtp(data.otp)
       setStep('verify')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed')
@@ -177,6 +179,7 @@ export default function RegisterPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to resend code')
+      setDevOtp(data.otp)
       setResendMessage('A new code has been sent to your email.')
     } catch (err) {
       setResendMessage(err instanceof Error ? err.message : 'Failed to resend code')
@@ -293,6 +296,11 @@ export default function RegisterPage() {
                     <input key={i} id={`otp-${i}`} type="text" maxLength={1} className="signin-input" style={{ width: '44px', textAlign: 'center', fontWeight: 'bold' }} value={d} onChange={(e) => handleOtpInput(i, e.target.value)} />
                   ))}
                 </div>
+                {devOtp && (
+                  <p style={{ fontSize: '12px', color: '#0a7d3c', background: '#eafaf0', border: '1px solid #b9eccb', borderRadius: '8px', padding: '8px 12px', margin: '4px 0 0', textAlign: 'center' }}>
+                    Development mode — your verification code is <strong>{devOtp}</strong>
+                  </p>
+                )}
                 {error && <p style={{ color: '#ff4d4d', fontSize: '14px', marginTop: '10px', textAlign: 'center' }}>{error}</p>}
                 {resendMessage && <p style={{ color: '#666', fontSize: '13px', marginTop: '10px', textAlign: 'center' }}>{resendMessage}</p>}
                 <button type="submit" className={`signin-submit-btn ${loading ? 'loading' : ''}`} disabled={loading}>{loading ? 'Verifying...' : 'Verify Email'}</button>

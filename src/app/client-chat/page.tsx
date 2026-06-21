@@ -305,11 +305,9 @@ function LoginForm({
 /* ── OTP Verify Form ──────────────────────────────────────── */
 function VerifyForm({
   email,
-  devOtp,
   onVerified,
 }: {
   email: string
-  devOtp?: string
   onVerified: (token: string) => void
 }) {
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
@@ -317,7 +315,6 @@ function VerifyForm({
   const [error, setError] = useState('')
   const [resending, setResending] = useState(false)
   const [resendMessage, setResendMessage] = useState('')
-  const [currentDevOtp, setCurrentDevOtp] = useState(devOtp)
 
   const handleOtpInput = (index: number, val: string) => {
     if (val.length > 1) return
@@ -350,11 +347,10 @@ function VerifyForm({
     setResending(true)
     setResendMessage('')
     try {
-      const data = await apiRequest<{ message: string; otp?: string }>('/api/auth/resend-otp', {
+      const data = await apiRequest<{ message: string }>('/api/auth/resend-otp', {
         body: { email },
       })
       setResendMessage(data.message)
-      setCurrentDevOtp(data.otp)
     } catch (err) {
       setResendMessage((err as Error).message || 'Failed to resend code.')
     } finally {
@@ -378,21 +374,6 @@ function VerifyForm({
             />
           ))}
         </div>
-
-        {currentDevOtp && (
-          <p style={{
-            fontSize: '12px',
-            color: '#0a7d3c',
-            background: '#eafaf0',
-            border: '1px solid #b9eccb',
-            borderRadius: '8px',
-            padding: '8px 12px',
-            margin: 0,
-            textAlign: 'center',
-          }}>
-            Development mode — your verification code is <strong>{currentDevOtp}</strong>
-          </p>
-        )}
 
         {error && <p role="alert" style={{ fontSize: '13px', color: '#ef4444', margin: 0, textAlign: 'center' }}>{error}</p>}
         {resendMessage && <p style={{ fontSize: '13px', color: '#666', margin: 0, textAlign: 'center' }}>{resendMessage}</p>}
@@ -759,7 +740,6 @@ export default function ExternalChatPage() {
           {stage.kind === 'verify' && (
             <VerifyForm
               email={stage.email}
-              devOtp={stage.devOtp}
               onVerified={(tok) => { setClientToken(tok); setToken(tok); setStage({ kind: 'chat' }) }}
             />
           )}
