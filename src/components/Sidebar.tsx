@@ -24,11 +24,25 @@ function initialsOf(firstName: string, lastName: string): string {
   return initials || '?'
 }
 
+function PolicyIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+      <line x1="16" y1="13" x2="8" y2="13" />
+      <line x1="16" y1="17" x2="8" y2="17" />
+      <polyline points="10 9 9 9 8 9" />
+    </svg>
+  )
+}
+
 export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const { adminUser } = useSidebar()
   const [menuOpen, setMenuOpen] = useState(false)
+  const isPolicyActive = pathname.startsWith('/dashboard/policy')
+  const [policyOpen, setPolicyOpen] = useState(isPolicyActive)
 
   function handleLogout() {
     clearAdminToken()
@@ -41,6 +55,11 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
     { label: 'Client Chats', icon: <InboxIcon />, href: '/dashboard/inbox' },
     { label: 'Payments', icon: <PaymentIcon />, href: '/dashboard/payments' },
     { label: 'All Members', icon: <UsersIcon />, href: '/dashboard/clients' },
+  ]
+
+  const policySubnav = [
+    { label: 'Privacy Policy Manager', href: '/dashboard/policy/privacy' },
+    { label: 'Terms Manager', href: '/dashboard/policy/terms' },
   ]
 
   return (
@@ -81,7 +100,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
                   paddingLeft: isActive ? '36px' : '24px'
                 }}
               >
-                <div style={{ color: isActive ? '#c9a84c' : 'rgba(255,255,255,0.4)', marginTop: '2px', width: "16px" }}>
+                <div style={{ color: isActive ? '#c9a84c' : 'rgba(255,255,255,0.4)', marginTop: '2px', width: '16px' }}>
                   {item.icon}
                 </div>
                 <div style={{ flex: 1, fontWeight: '500', fontSize: '15px', color: isActive ? '#c9a84c' : 'rgba(255,255,255,0.7)', letterSpacing: '0.02em', marginLeft: '6px' }}>
@@ -90,6 +109,66 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
               </Link>
             )
           })}
+
+          {/* Policy Manager accordion */}
+          <button
+            onClick={() => setPolicyOpen(o => !o)}
+            style={{
+              display: 'flex', alignItems: 'center', width: '100%',
+              padding: isPolicyActive ? '14px 36px' : '14px 24px',
+              background: isPolicyActive ? '#25232d' : 'transparent',
+              border: 'none',
+              borderRadius: isPolicyActive ? 0 : 8,
+              margin: isPolicyActive ? '4px -16px' : '4px 0',
+              borderLeft: isPolicyActive ? '4px solid #c9a84c' : '4px solid transparent',
+              cursor: 'pointer', textAlign: 'left',
+            }}
+          >
+            <div style={{ color: isPolicyActive ? '#c9a84c' : 'rgba(255,255,255,0.4)', width: 16, flexShrink: 0 }}>
+              <PolicyIcon />
+            </div>
+            <div style={{ flex: 1, fontWeight: 500, fontSize: 15, color: isPolicyActive ? '#c9a84c' : 'rgba(255,255,255,0.7)', letterSpacing: '0.02em', marginLeft: 6 }}>
+              Policy Manager
+            </div>
+            <div style={{ color: 'rgba(255,255,255,0.3)', marginLeft: 8 }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points={policyOpen ? '18 15 12 9 6 15' : '6 9 12 15 18 9'} />
+              </svg>
+            </div>
+          </button>
+
+          {policyOpen && (
+            <div style={{ paddingLeft: 12 }}>
+              {policySubnav.map((sub) => {
+                const isActive = pathname === sub.href
+                return (
+                  <Link
+                    key={sub.href}
+                    href={sub.href}
+                    onClick={() => setSidebarOpen(false)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 8,
+                      padding: '10px 16px', textDecoration: 'none',
+                      borderRadius: 8, margin: '2px 0',
+                      background: isActive ? 'rgba(201,168,76,0.12)' : 'transparent',
+                      borderLeft: isActive ? '3px solid #c9a84c' : '3px solid transparent',
+                    }}
+                  >
+                    <div style={{
+                      width: 5, height: 5, borderRadius: '50%', flexShrink: 0,
+                      background: isActive ? '#c9a84c' : 'rgba(255,255,255,0.25)',
+                    }} />
+                    <span style={{
+                      fontSize: 13, fontWeight: isActive ? 600 : 400,
+                      color: isActive ? '#c9a84c' : 'rgba(255,255,255,0.55)',
+                    }}>
+                      {sub.label}
+                    </span>
+                  </Link>
+                )
+              })}
+            </div>
+          )}
         </div>
 
         <div style={{ position: 'relative', marginTop: 'auto' }}>

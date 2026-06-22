@@ -262,8 +262,8 @@ export default function LoginPage() {
           {/* Bottom link – pinned */}
           <div className="signin-left-bottom">
             <span>Don&apos;t have an account?</span>
-            <Link href="/register" className="signin-gold-link">
-              Get legal advice →
+            <Link href="/legaljoin" className="signin-gold-link">
+              Register Instead →
             </Link>
           </div>
         </div>
@@ -354,7 +354,7 @@ export default function LoginPage() {
               {/* New client */}
               <p className="signin-new-client">
                 <span>New client?</span>
-                <Link href="/register" className="signin-gold-link">Get legal advice →</Link>
+                <Link href="/legaljoin" className="signin-gold-link">Register Instead →</Link>
               </p>
             </>
           )}
@@ -396,7 +396,7 @@ export default function LoginPage() {
               </form>
               <p className="signin-new-client" style={{ marginTop: '8px' }}>
                 <span>Don&apos;t have an account?</span>
-                <Link href="/register" className="signin-gold-link">Get legal advice →</Link>
+                <Link href="/legaljoin" className="signin-gold-link">Register Instead →</Link>
               </p>
             </>
           )}
@@ -436,7 +436,7 @@ export default function LoginPage() {
               </form>
               <p className="signin-new-client" style={{ marginTop: '8px' }}>
                 <span>Don&apos;t have an account?</span>
-                <Link href="/register" className="signin-gold-link">Get legal advice →</Link>
+                <Link href="/legaljoin" className="signin-gold-link">Register Instead →</Link>
               </p>
             </>
           )}
@@ -505,7 +505,7 @@ export default function LoginPage() {
               </form>
               <p className="signin-new-client" style={{ marginTop: '8px' }}>
                 <span>Don&apos;t have an account?</span>
-                <Link href="/register" className="signin-gold-link">Get legal advice →</Link>
+                <Link href="/legaljoin" className="signin-gold-link">Register Instead →</Link>
               </p>
             </>
           )}

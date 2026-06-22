@@ -81,7 +81,7 @@ export default function DynamicPage() {
               <h3 style={{ fontSize: '24px', fontWeight: '800', color: '#1a1a2e', marginBottom: '12px' }}>Need assistance with this?</h3>
               <p style={{ color: '#666', marginBottom: '24px', maxWidth: '500px', margin: '0 auto 24px' }}>Our licensed legal experts are ready to guide you through the complexities of German law.</p>
               <button 
-                onClick={() => window.location.href = user ? '/legalchat' : '/register'} 
+                onClick={() => window.location.href = user ? '/legalchat' : '/legaljoin'} 
                 className="btn-primary" 
                 style={{ padding: '14px 40px' }}
               >

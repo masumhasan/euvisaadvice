@@ -14,8 +14,11 @@ interface Package {
   name: string
   price: number
   description: string
+  tier: 'silver' | 'gold' | 'platinum'
   createdAt: string
 }
+
+const TIER_COLORS: Record<string, string> = { silver: '#9ca3af', gold: '#c9a84c', platinum: '#a78bfa' }
 
 // ── Page Component ──────────────────────────────────────────────────────────────
 
@@ -33,6 +36,7 @@ export default function ChatbotPackagesPage() {
   const [name, setName] = useState('')
   const [price, setPrice] = useState('')
   const [description, setDescription] = useState('')
+  const [tier, setTier] = useState<'silver' | 'gold' | 'platinum'>('silver')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
@@ -64,7 +68,7 @@ export default function ChatbotPackagesPage() {
     setIsSubmitting(true)
     setFormError(null)
 
-    const body = { name, price: parseFloat(price), description }
+    const body = { name, price: parseFloat(price), description, tier }
     const token = getAdminToken()
 
     try {
@@ -99,6 +103,7 @@ export default function ChatbotPackagesPage() {
     setName('')
     setPrice('')
     setDescription('')
+    setTier('silver')
     setEditingId(null)
     setShowAddForm(false)
     setFormError(null)
@@ -109,6 +114,7 @@ export default function ChatbotPackagesPage() {
     setName(pkg.name)
     setPrice(pkg.price.toString())
     setDescription(pkg.description)
+    setTier(pkg.tier)
     setShowAddForm(true)
   }
 
@@ -208,6 +214,19 @@ export default function ChatbotPackagesPage() {
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '11.5px', color: 'rgba(0,0,0,0.35)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Subscription Tier</label>
+              <select
+                value={tier}
+                onChange={(e) => setTier(e.target.value as 'silver' | 'gold' | 'platinum')}
+                required
+                style={{ padding: '12px 16px', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.1)', fontSize: '15px', outline: 'none', color: '#000000', background: '#fff' }}
+              >
+                <option value="silver">Silver — up to 3 conversations</option>
+                <option value="gold">Gold — up to 10 conversations</option>
+                <option value="platinum">Platinum — unlimited + booking</option>
+              </select>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontSize: '11.5px', color: 'rgba(0,0,0,0.35)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Description</label>
               <textarea
                 value={description}
@@ -263,7 +282,17 @@ export default function ChatbotPackagesPage() {
               flexDirection: 'column'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a1a2e', margin: 0 }}>{pkg.name}</h3>
+                <div>
+                  <span style={{
+                    display: 'inline-block', fontSize: '10px', fontWeight: 700, letterSpacing: 1.5,
+                    textTransform: 'uppercase', color: TIER_COLORS[pkg.tier] ?? '#9ca3af',
+                    background: `${TIER_COLORS[pkg.tier] ?? '#9ca3af'}18`,
+                    borderRadius: 6, padding: '2px 8px', marginBottom: 6,
+                  }}>
+                    {pkg.tier}
+                  </span>
+                  <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1a1a2e', margin: 0 }}>{pkg.name}</h3>
+                </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button onClick={() => handleEditClick(pkg)} style={{ background: 'none', border: 'none', color: '#c9a84c', cursor: 'pointer', padding: '4px' }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>

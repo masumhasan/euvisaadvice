@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ScalesIcon } from '@/components/Icons'
@@ -40,14 +40,7 @@ function CreditCardIcon() {
     </svg>
   )
 }
-function CameraIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-      <circle cx="12" cy="13" r="4" />
-    </svg>
-  )
-}
+
 function EyeIcon({ open }: { open: boolean }) {
   if (open) return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -63,7 +56,6 @@ function EyeIcon({ open }: { open: boolean }) {
 
 export default function ProfilePage() {
   const router = useRouter()
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [mounted, setMounted] = useState(false)
   const [authChecked, setAuthChecked] = useState(false)
@@ -71,7 +63,7 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState('')
-  const [avatarUrl, setAvatarUrl] = useState('')
+  const [subscriptionPlan, setSubscriptionPlan] = useState('')
   const [loggingOut, setLoggingOut] = useState(false)
 
   // Profile data
@@ -99,7 +91,7 @@ export default function ProfilePage() {
 
     const token = getToken()
     if (!token) {
-      router.push('/login')
+      router.push('/legal-login')
       return
     }
 
@@ -116,19 +108,17 @@ export default function ProfilePage() {
           city: data.user.city || '',
           bio: data.user.bio || '',
         })
+        const plan = data.user.subscriptionPlan ?? ''
+        if (plan && plan !== 'none') {
+          setSubscriptionPlan(plan.charAt(0).toUpperCase() + plan.slice(1) + ' Member')
+        }
         setAuthChecked(true)
       })
       .catch(() => {
         clearToken()
-        router.push('/login')
+        router.push('/legal-login')
       })
   }, [router])
-
-  function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setAvatarUrl(URL.createObjectURL(file))
-  }
 
   async function handleProfileUpdate(e: React.FormEvent) {
     e.preventDefault()
@@ -204,7 +194,7 @@ export default function ProfilePage() {
       // ignore network errors — clear the local session regardless
     } finally {
       clearToken()
-      router.push('/login')
+      router.push('/legal-login')
     }
   }
 
@@ -222,10 +212,8 @@ export default function ProfilePage() {
             <ScalesIcon style={{ width: 22, height: 22, color: '#c9a84c' }} />
             <span className="signin-brand">EUVisaAdvice</span>
           </Link>
-          <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: avatarUrl ? 'transparent' : 'linear-gradient(135deg, #c9a84c, #ab8c36)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '14px', color: '#fff', flexShrink: 0, overflow: 'hidden' }}>
-            {avatarUrl
-              ? <img src={avatarUrl} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              : initials}
+          <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg, #c9a84c, #ab8c36)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '14px', color: '#fff', flexShrink: 0 }}>
+            {initials}
           </div>
         </div>
       </nav>
@@ -234,13 +222,7 @@ export default function ProfilePage() {
       <div className="profile-header-area" style={{ background: 'linear-gradient(rgba(18, 18, 31, 0.8), rgba(18, 18, 31, 0.95)), url("https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=1600") center/cover no-repeat' }}>
         <div className="profile-header-content">
           <div className="profile-avatar-wrap">
-            {avatarUrl
-              ? <img src={avatarUrl} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '18px' }} />
-              : <div className="profile-avatar-inner">{initials}</div>}
-            <button className="profile-avatar-edit" onClick={() => fileInputRef.current?.click()} title="Change photo">
-              <CameraIcon />
-            </button>
-            <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarChange} />
+            <div className="profile-avatar-inner">{initials}</div>
           </div>
 
           <div className="profile-user-info">
@@ -248,7 +230,7 @@ export default function ProfilePage() {
               <h1 className="profile-name">{formData.firstName} {formData.lastName}</h1>
             </div>
             <div className="profile-status">
-              <span>Premium • Client Portal</span>
+              <span>{subscriptionPlan || 'Client Portal'}</span>
             </div>
           </div>
 

@@ -67,17 +67,14 @@ export default function Footer() {
             <div className="footer-contact-item">
               <MapPinIcon style={{ width: 17, height: 17, flexShrink: 0, marginTop: 2 }} />
               <span>
-                Friedrichstraße 123<br />
-                10117 Berlin, Germany
+                30 N Gould St, Ste N<br />
+                Sheridan, WY 82801 USA
               </span>
             </div>
-            <div className="footer-contact-item">
-              <PhoneIcon style={{ width: 17, height: 17, flexShrink: 0 }} />
-              <a href="tel:+493012345678">+49 30 1234 5678</a>
-            </div>
+           
             <div className="footer-contact-item">
               <MailIcon style={{ width: 17, height: 17, flexShrink: 0 }} />
-              <a href="mailto:contact@msadvocate.net">contact@msadvocate.net</a>
+              <a href="mailto:supporteuvisa@gmail.com">supporteuvisa@gmail.com</a>
             </div>
           </div>
         </div>
