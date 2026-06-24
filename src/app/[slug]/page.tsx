@@ -54,7 +54,7 @@ export default function DynamicPage() {
           padding: '0 20px'
         }}>
           <div style={{ background: 'rgba(201, 168, 76, 0.2)', padding: '8px 20px', borderRadius: '40px', color: '#c9a84c', fontSize: '14px', fontWeight: '700', marginBottom: '16px', letterSpacing: '1px', textTransform: 'uppercase' }}>
-            Legal Expertise
+             Consulting Expertise
           </div>
           <h1 style={{ color: '#fff', fontSize: '48px', fontWeight: '800', letterSpacing: '-0.02em', maxWidth: '800px' }}>
             {pageData.title}
