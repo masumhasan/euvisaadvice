@@ -38,21 +38,21 @@ function Hero() {
       <div className="hero-inner">
         {/* Left */}
         <div className="hero-left">
-          <p className="hero-eyebrow">Legal Excellence for Expats</p>
+          <p className="hero-eyebrow">Consulting for Expats</p>
 
           <h1 className="hero-heading">
-            Immigration, Tax &amp;<br />
-            Business Law <span className="gold">Made Simple</span>
+            Immigration &<br />
+            Nomad Consulting <span className="gold">Made Simple</span>
           </h1>
 
           <p className="hero-sub">
-            Expert legal guidance for immigrants in Germany or Digital nomads
+            Expert consulting for immigrants in Germany or Digital nomads
             leaving Germany
           </p>
 
           <div className="hero-cta">
             <Link href="/legalchat" className="btn-primary">
-              Get Legal Advice
+              Get Advice Now
             </Link>
             <Link href="/client-chat" className="btn-outline">
               Existing Client Login

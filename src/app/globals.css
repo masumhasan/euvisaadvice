@@ -442,6 +442,23 @@ svg {
   }
 }
 
+/* Dynamic page content – keep CTA button contained on mobile */
+@media (max-width: 600px) {
+  .dynamic-content-card {
+    padding: 36px 18px !important;
+  }
+  .content-cta-box {
+    padding: 28px 16px !important;
+  }
+  .content-cta-btn {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    white-space: normal;
+    padding: 14px 16px !important;
+  }
+}
+
 /* Hero Right – stats */
 .hero-right {
   width: 100%;

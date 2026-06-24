@@ -4,10 +4,8 @@ import Link from 'next/link'
 import { LogoIcon, MapPinIcon, PhoneIcon, MailIcon } from './Icons'
 
 const serviceLinks = [
-  { label: 'Immigration Law', href: '/immigration-law' },
-  { label: 'Tax Law', href: '/tax-law' },
-  { label: 'Business Law', href: '/business-law' },
-  { label: 'Legal Consultation', href: '/legal-consultation' }
+  { label: 'Immigration Consulting', href: '/immigration-consulting' },
+  { label: 'Digital Nomad Consulting', href: '/digital-nomad-consulting' }
 ]
 const companyLinks = [
   { label: 'About Us', href: '/about-us' },
@@ -33,7 +31,7 @@ export default function Footer() {
             </div>
           </div>
           <p className="footer-brand-desc">
-            Expert legal services for expats and remote workers in Germany.
+            Expert consultung services for expats and remote workers in Germany.
           </p>
           <Link href="/legalchat" className="btn-sm">
             Start Consultation

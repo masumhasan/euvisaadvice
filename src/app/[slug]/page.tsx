@@ -63,7 +63,7 @@ export default function DynamicPage() {
 
         {/* Main Content Area */}
         <div className="dynamic-content-wrap" style={{ maxWidth: '1000px', margin: '-80px auto 0', position: 'relative', zIndex: 10, padding: '0 20px', width: '100%' }}>
-          <div style={{ background: '#fff', padding: '60px 40px', borderRadius: '32px', boxShadow: '0 30px 60px rgba(0,0,0,0.08)', border: '1px solid rgba(0,0,0,0.02)', overflow: 'hidden' }}>
+          <div className="dynamic-content-card" style={{ background: '#fff', padding: '60px 40px', borderRadius: '32px', boxShadow: '0 30px 60px rgba(0,0,0,0.08)', border: '1px solid rgba(0,0,0,0.02)', overflow: 'hidden' }}>
             <div 
               className="rich-text-content"
               dangerouslySetInnerHTML={{ __html: pageData.content_html }} 
@@ -77,12 +77,12 @@ export default function DynamicPage() {
             />
             
             {/* CTA Box at bottom of content */}
-            <div style={{ marginTop: '60px', padding: '40px', background: '#f8f7f2', borderRadius: '24px', border: '1px solid #eee', textAlign: 'center' }}>
+            <div className="content-cta-box" style={{ marginTop: '60px', padding: '40px', background: '#f8f7f2', borderRadius: '24px', border: '1px solid #eee', textAlign: 'center' }}>
               <h3 style={{ fontSize: '24px', fontWeight: '800', color: '#1a1a2e', marginBottom: '12px' }}>Need assistance with this?</h3>
-              <p style={{ color: '#666', marginBottom: '24px', maxWidth: '500px', margin: '0 auto 24px' }}>Our licensed legal experts are ready to guide you through the complexities of German law.</p>
+              <p style={{ color: '#666', marginBottom: '24px', maxWidth: '500px', margin: '0 auto 24px' }}>Our consultants are ready to guide you through the complexities of German law.</p>
               <button 
                 onClick={() => window.location.href = user ? '/legalchat' : '/legaljoin'} 
-                className="btn-primary" 
+                className="btn-primary content-cta-btn"
                 style={{ padding: '14px 40px' }}
               >
                 {user ? 'Get Instant Legal Advice' : 'Start Your Consultation'}
