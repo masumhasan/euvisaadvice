@@ -45,7 +45,7 @@ export default function DynamicPage() {
         {/* Banner Section */}
         <div className="dynamic-banner" style={{ 
           height: '400px', 
-          background: 'linear-gradient(rgba(26, 26, 46, 0.7), rgba(26, 26, 46, 0.9)), url("https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=1600") center/cover no-repeat',
+          background: 'linear-gradient(rgba(26, 26, 46, 0.7), rgba(26, 26, 46, 0.9)), url("/assets/img.jpg") center/cover no-repeat',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
