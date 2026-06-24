@@ -87,6 +87,10 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     if (pathname === '/dashboard/clients') return 'All Members'
     if (pathname?.startsWith('/dashboard/clients/')) return 'Client Profile'
     if (pathname === '/dashboard/pages') return 'Manage Dynamic Pages'
+    if (pathname === '/dashboard/policy/privacy') return 'Privacy Policy Manager'
+    if (pathname === '/dashboard/policy/terms') return 'Terms of Service Manager'
+    if (pathname === '/dashboard/policy/about') return 'About Us Manager'
+    if (pathname === '/dashboard/policy/team') return 'Our Team Manager'
     return 'Dashboard'
   }
 

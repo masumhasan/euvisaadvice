@@ -136,9 +136,23 @@ export default function ChatbotPackagesPage() {
   if (!mounted) return null
 
   return (
-    <div style={{ flex: 1, padding: '40px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+    <div className="dash-page">
+      <style>{`
+        .dash-page { flex: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; gap: 32px; }
+        .pkg-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .pkg-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .pkg-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+        @media (max-width: 768px) {
+          .dash-page { padding: 20px 16px; gap: 20px; }
+          .pkg-form-grid { grid-template-columns: 1fr; gap: 16px; }
+          .pkg-cards { grid-template-columns: 1fr; gap: 16px; }
+        }
+        @media (max-width: 480px) {
+          .dash-page { padding: 16px 12px; }
+        }
+      `}</style>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="pkg-header">
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: '500', color: '#1a1a2e', margin: 0 }}>Manage Packages</h2>
           <p style={{ color: 'rgba(0,0,0,0.4)', fontSize: '14px', marginTop: '4px' }}>Create and update your chatbot pricing tiers.</p>
@@ -188,7 +202,7 @@ export default function ChatbotPackagesPage() {
           border: '1px solid rgba(0,0,0,0.03)'
         }}>
           <form onSubmit={handleSavePackage} style={{ display: 'grid', gap: '24px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+            <div className="pkg-form-grid">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <label style={{ fontSize: '11.5px', color: 'rgba(0,0,0,0.35)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Package Name</label>
                 <input
@@ -270,7 +284,7 @@ export default function ChatbotPackagesPage() {
       {loading ? (
         <div style={{ textAlign: 'center', padding: '60px', color: 'rgba(0,0,0,0.3)' }}>Loading packages...</div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '24px' }}>
+        <div className="pkg-cards">
           {packages.map((pkg) => (
             <div key={pkg.id} style={{
               background: '#ffffff',

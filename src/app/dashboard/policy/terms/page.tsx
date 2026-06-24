@@ -51,7 +51,12 @@ export default function TermsManagerPage() {
   }
 
   return (
-    <div style={{ flex: 1, padding: '40px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div className="dash-page">
+      <style>{`
+        .dash-page { flex: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; }
+        @media (max-width: 768px) { .dash-page { padding: 20px 16px; } }
+        @media (max-width: 480px) { .dash-page { padding: 16px 12px; } }
+      `}</style>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
         <div>
           <h2 style={{ fontSize: 20, fontWeight: 600, color: '#1a1a2e', margin: 0 }}>Terms of Service Manager</h2>

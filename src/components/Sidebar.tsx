@@ -60,6 +60,8 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
   const policySubnav = [
     { label: 'Privacy Policy Manager', href: '/dashboard/policy/privacy' },
     { label: 'Terms Manager', href: '/dashboard/policy/terms' },
+    { label: 'About Us Manager', href: '/dashboard/policy/about' },
+    { label: 'Our Team Manager', href: '/dashboard/policy/team' },
   ]
 
   return (
@@ -110,7 +112,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
             )
           })}
 
-          {/* Policy Manager accordion */}
+          {/* Content Manager accordion */}
           <button
             onClick={() => setPolicyOpen(o => !o)}
             style={{
@@ -128,7 +130,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
               <PolicyIcon />
             </div>
             <div style={{ flex: 1, fontWeight: 500, fontSize: 15, color: isPolicyActive ? '#c9a84c' : 'rgba(255,255,255,0.7)', letterSpacing: '0.02em', marginLeft: 6 }}>
-              Policy Manager
+              Content Manager
             </div>
             <div style={{ color: 'rgba(255,255,255,0.3)', marginLeft: 8 }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

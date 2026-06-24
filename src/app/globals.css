@@ -1530,6 +1530,17 @@ svg {
   }
 }
 
+/* ── Dashboard responsive tweaks ───────────────────────────── */
+@media (max-width: 640px) {
+  .chat-header {
+    height: 60px;
+    padding: 0 16px;
+  }
+  .chat-header h1 {
+    font-size: 18px !important;
+  }
+}
+
 /* ── Profile Page ─────────────────────────────────────────── */
 .profile-root {
   min-height: 100vh;

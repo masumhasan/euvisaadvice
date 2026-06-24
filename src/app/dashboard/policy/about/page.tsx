@@ -8,7 +8,7 @@ const WysiwygEditor = dynamic(() => import('@/components/WysiwygEditor'), { ssr:
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3005'
 
-export default function PrivacyPolicyManagerPage() {
+export default function AboutUsManagerPage() {
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -16,7 +16,7 @@ export default function PrivacyPolicyManagerPage() {
   const [lastSaved, setLastSaved] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch(`${BACKEND}/api/admin/pages/privacy-policy`, {
+    fetch(`${BACKEND}/api/admin/pages/about-us`, {
       headers: { Authorization: `Bearer ${getAdminToken()}` },
     })
       .then(r => r.json())
@@ -31,7 +31,7 @@ export default function PrivacyPolicyManagerPage() {
     setSaving(true)
     setSaveMsg(null)
     try {
-      const res = await fetch(`${BACKEND}/api/admin/pages/privacy-policy`, {
+      const res = await fetch(`${BACKEND}/api/admin/pages/about-us`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -42,7 +42,7 @@ export default function PrivacyPolicyManagerPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Save failed')
       setLastSaved(new Date(data.updatedAt).toLocaleString())
-      setSaveMsg({ text: 'Privacy Policy saved successfully.', ok: true })
+      setSaveMsg({ text: 'About Us page saved successfully.', ok: true })
     } catch (err) {
       setSaveMsg({ text: (err as Error).message, ok: false })
     } finally {
@@ -59,9 +59,9 @@ export default function PrivacyPolicyManagerPage() {
       `}</style>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <h2 style={{ fontSize: 20, fontWeight: 600, color: '#1a1a2e', margin: 0 }}>Privacy Policy Manager</h2>
+          <h2 style={{ fontSize: 20, fontWeight: 600, color: '#1a1a2e', margin: 0 }}>About Us Manager</h2>
           <p style={{ color: 'rgba(0,0,0,0.4)', fontSize: 14, marginTop: 4 }}>
-            Edit the content displayed on <strong>/privacy-policy</strong>.
+            Edit the content displayed on <strong>/about-us</strong>.
             {lastSaved && <span style={{ marginLeft: 8, color: 'rgba(0,0,0,0.3)' }}>Last saved: {lastSaved}</span>}
           </p>
         </div>

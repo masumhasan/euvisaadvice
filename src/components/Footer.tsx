@@ -9,7 +9,7 @@ const serviceLinks = [
 ]
 const companyLinks = [
   { label: 'About Us', href: '/about-us' },
-  { label: 'How It Works', href: '/how-it-works' },
+  { label: 'Our Team', href: '/our-team' },
   { label: 'Privacy Policy', href: '/privacy-policy' },
   { label: 'Terms of Service', href: '/terms-of-service' }
 ]
