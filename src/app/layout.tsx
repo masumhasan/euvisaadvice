@@ -11,6 +11,10 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   title: "EUVisaAdvice",
   description: "AI-powered EU visa advice platform.",
+  manifest: "/manifest.json",
+  other: {
+    "mobile-web-app-capable": "no",
+  },
 };
 
 export default function RootLayout({
