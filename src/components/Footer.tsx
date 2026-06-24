@@ -1,20 +1,34 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { LogoIcon, MapPinIcon, PhoneIcon, MailIcon } from './Icons'
+import { LogoIcon, MapPinIcon, MailIcon } from './Icons'
 
-const serviceLinks = [
-  { label: 'Immigration Consulting', href: '/immigration-consulting' },
-  { label: 'Digital Nomad Consulting', href: '/digital-nomad-consulting' }
-]
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3005'
+
 const companyLinks = [
   { label: 'About Us', href: '/about-us' },
   { label: 'Our Team', href: '/our-team' },
   { label: 'Privacy Policy', href: '/privacy-policy' },
-  { label: 'Terms of Service', href: '/terms-of-service' }
+  { label: 'Terms of Service', href: '/terms-of-service' },
 ]
 
+interface ServiceLink {
+  id: string
+  name: string
+  slug: string
+}
+
 export default function Footer() {
+  const [serviceLinks, setServiceLinks] = useState<ServiceLink[]>([])
+
+  useEffect(() => {
+    fetch(`${BACKEND}/api/services`)
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data.services)) setServiceLinks(data.services) })
+      .catch(() => {})
+  }, [])
+
   return (
     <footer className="footer">
       <div className="footer-grid">
@@ -31,20 +45,25 @@ export default function Footer() {
             </div>
           </div>
           <p className="footer-brand-desc">
-            Expert consultung services for expats and remote workers in Germany.
+            Expert consulting services for expats and remote workers in Germany.
           </p>
           <Link href="/legalchat" className="btn-sm">
             Start Consultation
           </Link>
         </div>
 
-        {/* Services */}
+        {/* Services — dynamic */}
         <div>
           <h3 className="footer-col-title">Services</h3>
           <div className="footer-col-links">
-            {serviceLinks.map((item) => (
-              <Link key={item.label} href={item.href}>{item.label}</Link>
-            ))}
+            {serviceLinks.length > 0
+              ? serviceLinks.map(s => (
+                  <Link key={s.id} href={`/${s.slug}`}>{s.name}</Link>
+                ))
+              : (
+                <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>No services yet</span>
+              )
+            }
           </div>
         </div>
 
@@ -52,7 +71,7 @@ export default function Footer() {
         <div>
           <h3 className="footer-col-title">Company</h3>
           <div className="footer-col-links">
-            {companyLinks.map((item) => (
+            {companyLinks.map(item => (
               <Link key={item.label} href={item.href}>{item.label}</Link>
             ))}
           </div>
@@ -69,7 +88,6 @@ export default function Footer() {
                 Sheridan, WY 82801 USA
               </span>
             </div>
-           
             <div className="footer-contact-item">
               <MailIcon style={{ width: 17, height: 17, flexShrink: 0 }} />
               <a href="mailto:supporteuvisa@gmail.com">supporteuvisa@gmail.com</a>

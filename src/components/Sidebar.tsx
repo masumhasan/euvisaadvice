@@ -20,8 +20,7 @@ interface SidebarProps {
 }
 
 function initialsOf(firstName: string, lastName: string): string {
-  const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
-  return initials || '?'
+  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || '?'
 }
 
 function PolicyIcon() {
@@ -31,8 +30,66 @@ function PolicyIcon() {
       <polyline points="14 2 14 8 20 8" />
       <line x1="16" y1="13" x2="8" y2="13" />
       <line x1="16" y1="17" x2="8" y2="17" />
-      <polyline points="10 9 9 9 8 9" />
     </svg>
+  )
+}
+
+function ServiceIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
+    </svg>
+  )
+}
+
+function AccordionButton({
+  isActive, isOpen, icon, label, onClick,
+}: {
+  isActive: boolean; isOpen: boolean; icon: React.ReactNode; label: string; onClick: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', width: '100%',
+        padding: isActive ? '14px 36px' : '14px 24px',
+        background: isActive ? '#25232d' : 'transparent',
+        border: 'none', borderRadius: isActive ? 0 : 8,
+        margin: isActive ? '4px -16px' : '4px 0',
+        borderLeft: isActive ? '4px solid #c9a84c' : '4px solid transparent',
+        cursor: 'pointer', textAlign: 'left',
+      }}
+    >
+      <div style={{ color: isActive ? '#c9a84c' : 'rgba(255,255,255,0.4)', width: 16, flexShrink: 0 }}>{icon}</div>
+      <div style={{ flex: 1, fontWeight: 500, fontSize: 15, color: isActive ? '#c9a84c' : 'rgba(255,255,255,0.7)', letterSpacing: '0.02em', marginLeft: 6 }}>{label}</div>
+      <div style={{ color: 'rgba(255,255,255,0.3)', marginLeft: 8 }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points={isOpen ? '18 15 12 9 6 15' : '6 9 12 15 18 9'} />
+        </svg>
+      </div>
+    </button>
+  )
+}
+
+function SubnavLink({ href, label, onClick }: { href: string; label: string; onClick: () => void }) {
+  const pathname = usePathname()
+  const isActive = pathname === href
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 8,
+        padding: '10px 16px', textDecoration: 'none',
+        borderRadius: 8, margin: '2px 0',
+        background: isActive ? 'rgba(201,168,76,0.12)' : 'transparent',
+        borderLeft: isActive ? '3px solid #c9a84c' : '3px solid transparent',
+      }}
+    >
+      <div style={{ width: 5, height: 5, borderRadius: '50%', flexShrink: 0, background: isActive ? '#c9a84c' : 'rgba(255,255,255,0.25)' }} />
+      <span style={{ fontSize: 13, fontWeight: isActive ? 600 : 400, color: isActive ? '#c9a84c' : 'rgba(255,255,255,0.55)' }}>{label}</span>
+    </Link>
   )
 }
 
@@ -41,8 +98,12 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
   const router = useRouter()
   const { adminUser } = useSidebar()
   const [menuOpen, setMenuOpen] = useState(false)
+
   const isPolicyActive = pathname.startsWith('/dashboard/policy')
+  const isServiceActive = pathname === '/dashboard/services'
+
   const [policyOpen, setPolicyOpen] = useState(isPolicyActive)
+  const [serviceOpen, setServiceOpen] = useState(isServiceActive)
 
   function handleLogout() {
     clearAdminToken()
@@ -64,12 +125,11 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
     { label: 'Our Team Manager', href: '/dashboard/policy/team' },
   ]
 
+  const close = () => setSidebarOpen(false)
+
   return (
     <>
-      <div
-        className={`chat-overlay ${sidebarOpen ? 'visible' : ''}`}
-        onClick={() => setSidebarOpen(false)}
-      />
+      <div className={`chat-overlay ${sidebarOpen ? 'visible' : ''}`} onClick={close} />
 
       <aside className={`chat-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="chat-sidebar-header">
@@ -91,7 +151,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
                 key={item.label}
                 href={item.href}
                 className={`history-item ${isActive ? 'active' : ''}`}
-                onClick={() => setSidebarOpen(false)}
+                onClick={close}
                 style={{
                   textDecoration: 'none',
                   padding: '14px 24px',
@@ -99,76 +159,42 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
                   margin: isActive ? '4px -16px' : '4px 0',
                   background: isActive ? '#25232d' : 'transparent',
                   borderLeft: isActive ? '4px solid #c9a84c' : '4px solid transparent',
-                  paddingLeft: isActive ? '36px' : '24px'
+                  paddingLeft: isActive ? '36px' : '24px',
                 }}
               >
-                <div style={{ color: isActive ? '#c9a84c' : 'rgba(255,255,255,0.4)', marginTop: '2px', width: '16px' }}>
-                  {item.icon}
-                </div>
-                <div style={{ flex: 1, fontWeight: '500', fontSize: '15px', color: isActive ? '#c9a84c' : 'rgba(255,255,255,0.7)', letterSpacing: '0.02em', marginLeft: '6px' }}>
-                  {item.label}
-                </div>
+                <div style={{ color: isActive ? '#c9a84c' : 'rgba(255,255,255,0.4)', marginTop: '2px', width: '16px' }}>{item.icon}</div>
+                <div style={{ flex: 1, fontWeight: '500', fontSize: '15px', color: isActive ? '#c9a84c' : 'rgba(255,255,255,0.7)', letterSpacing: '0.02em', marginLeft: '6px' }}>{item.label}</div>
               </Link>
             )
           })}
 
-          {/* Content Manager accordion */}
-          <button
-            onClick={() => setPolicyOpen(o => !o)}
-            style={{
-              display: 'flex', alignItems: 'center', width: '100%',
-              padding: isPolicyActive ? '14px 36px' : '14px 24px',
-              background: isPolicyActive ? '#25232d' : 'transparent',
-              border: 'none',
-              borderRadius: isPolicyActive ? 0 : 8,
-              margin: isPolicyActive ? '4px -16px' : '4px 0',
-              borderLeft: isPolicyActive ? '4px solid #c9a84c' : '4px solid transparent',
-              cursor: 'pointer', textAlign: 'left',
-            }}
-          >
-            <div style={{ color: isPolicyActive ? '#c9a84c' : 'rgba(255,255,255,0.4)', width: 16, flexShrink: 0 }}>
-              <PolicyIcon />
+          {/* ── Service Manager ── */}
+          <AccordionButton
+            isActive={isServiceActive}
+            isOpen={serviceOpen}
+            icon={<ServiceIcon />}
+            label="Service Manager"
+            onClick={() => setServiceOpen(o => !o)}
+          />
+          {serviceOpen && (
+            <div style={{ paddingLeft: 12 }}>
+              <SubnavLink href="/dashboard/services" label="Manage Services" onClick={close} />
             </div>
-            <div style={{ flex: 1, fontWeight: 500, fontSize: 15, color: isPolicyActive ? '#c9a84c' : 'rgba(255,255,255,0.7)', letterSpacing: '0.02em', marginLeft: 6 }}>
-              Content Manager
-            </div>
-            <div style={{ color: 'rgba(255,255,255,0.3)', marginLeft: 8 }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points={policyOpen ? '18 15 12 9 6 15' : '6 9 12 15 18 9'} />
-              </svg>
-            </div>
-          </button>
+          )}
 
+          {/* ── Content Manager ── */}
+          <AccordionButton
+            isActive={isPolicyActive}
+            isOpen={policyOpen}
+            icon={<PolicyIcon />}
+            label="Content Manager"
+            onClick={() => setPolicyOpen(o => !o)}
+          />
           {policyOpen && (
             <div style={{ paddingLeft: 12 }}>
-              {policySubnav.map((sub) => {
-                const isActive = pathname === sub.href
-                return (
-                  <Link
-                    key={sub.href}
-                    href={sub.href}
-                    onClick={() => setSidebarOpen(false)}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 8,
-                      padding: '10px 16px', textDecoration: 'none',
-                      borderRadius: 8, margin: '2px 0',
-                      background: isActive ? 'rgba(201,168,76,0.12)' : 'transparent',
-                      borderLeft: isActive ? '3px solid #c9a84c' : '3px solid transparent',
-                    }}
-                  >
-                    <div style={{
-                      width: 5, height: 5, borderRadius: '50%', flexShrink: 0,
-                      background: isActive ? '#c9a84c' : 'rgba(255,255,255,0.25)',
-                    }} />
-                    <span style={{
-                      fontSize: 13, fontWeight: isActive ? 600 : 400,
-                      color: isActive ? '#c9a84c' : 'rgba(255,255,255,0.55)',
-                    }}>
-                      {sub.label}
-                    </span>
-                  </Link>
-                )
-              })}
+              {policySubnav.map(sub => (
+                <SubnavLink key={sub.href} href={sub.href} label={sub.label} onClick={close} />
+              ))}
             </div>
           )}
         </div>
@@ -178,22 +204,10 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
             <button
               onClick={handleLogout}
               style={{
-                position: 'absolute',
-                bottom: '100%',
-                left: '16px',
-                right: '16px',
-                marginBottom: '8px',
-                padding: '12px 16px',
-                background: '#25232d',
-                border: '1px solid rgba(255,255,255,0.08)',
-                borderRadius: '10px',
-                color: '#e04848',
-                fontSize: '13px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
+                position: 'absolute', bottom: '100%', left: '16px', right: '16px', marginBottom: '8px',
+                padding: '12px 16px', background: '#25232d', border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: '10px', color: '#e04848', fontSize: '13px', fontWeight: '600',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px',
               }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -204,7 +218,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
               Logout
             </button>
           )}
-          <div className="chat-sidebar-footer" onClick={() => setMenuOpen((open) => !open)} style={{ cursor: 'pointer' }}>
+          <div className="chat-sidebar-footer" onClick={() => setMenuOpen(o => !o)} style={{ cursor: 'pointer' }}>
             <div className="user-avatar" style={{ border: '2px solid rgba(255,255,255,0.1)' }}>
               {adminUser ? initialsOf(adminUser.firstName, adminUser.lastName) : '...'}
             </div>
@@ -213,7 +227,9 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
               <span style={{ fontSize: '10px', color: '#c9a84c', fontWeight: '600' }}>{adminUser?.email ?? ''}</span>
             </div>
             <div style={{ color: 'rgba(255,255,255,0.3)', display: 'flex' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points={menuOpen ? '15 18 9 12 15 6' : '9 18 15 12 9 6'} /></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points={menuOpen ? '15 18 9 12 15 6' : '9 18 15 12 9 6'} />
+              </svg>
             </div>
           </div>
         </div>
