@@ -91,6 +91,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     if (pathname === '/dashboard/policy/terms') return 'Terms of Service Manager'
     if (pathname === '/dashboard/policy/about') return 'About Us Manager'
     if (pathname === '/dashboard/policy/team') return 'Our Team Manager'
+    if (pathname === '/dashboard/policy/how-it-works') return 'How It Works Manager'
     if (pathname === '/dashboard/services') return 'Service Manager'
     return 'Dashboard'
   }
