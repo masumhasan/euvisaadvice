@@ -90,7 +90,7 @@ export default function ServicesPage() {
               Expert consulting for expats, remote workers, and digital nomads navigating life in Europe.
             </p>
             <Link href="/legalchat" style={{ display: 'inline-block', background: '#c9a84c', color: '#1a1926', padding: '14px 36px', borderRadius: 50, fontWeight: 800, fontSize: 15, textDecoration: 'none', letterSpacing: '0.02em' }}>
-              Get a Free Consultation
+              Get a Consultation
             </Link>
           </div>
         </div>
@@ -136,7 +136,7 @@ export default function ServicesPage() {
                   Talk to one of our consultants — we&apos;ll point you in the right direction.
                 </p>
                 <Link href="/legalchat" style={{ display: 'inline-block', background: '#c9a84c', color: '#1a1926', padding: '14px 40px', borderRadius: 50, fontWeight: 800, fontSize: 15, textDecoration: 'none' }}>
-                  Start Free Chat
+                  Start Chat
                 </Link>
               </div>
             </>

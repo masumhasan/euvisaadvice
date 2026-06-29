@@ -98,7 +98,7 @@ export default function HowItWorksPage() {
                 Our consultants are available to guide you through every step.
               </p>
               <Link href="/legalchat" style={{ display: 'inline-block', background: '#c9a84c', color: '#1a1926', padding: '14px 40px', borderRadius: 50, fontWeight: 800, fontSize: 15, textDecoration: 'none' }}>
-                Start Free Consultation
+                Start Consultation
               </Link>
             </div>
           )}
