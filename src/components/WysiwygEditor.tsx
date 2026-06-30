@@ -35,8 +35,9 @@ const TOOLBAR: Array<{ label: string; title: string; cmd?: FormatCommand; block?
 export default function WysiwygEditor({ value, onChange, minHeight = 420 }: WysiwygEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null)
   const isInternalUpdate = useRef(false)
+  // Save selection before toolbar buttons steal focus
+  const savedRange = useRef<Range | null>(null)
 
-  // Sync incoming value only when it changes externally (e.g. initial load)
   useEffect(() => {
     const el = editorRef.current
     if (!el) return
@@ -51,13 +52,78 @@ export default function WysiwygEditor({ value, onChange, minHeight = 420 }: Wysi
     onChange(editorRef.current?.innerHTML ?? '')
   }
 
+  function saveSelection() {
+    const sel = window.getSelection()
+    if (sel && sel.rangeCount > 0) {
+      savedRange.current = sel.getRangeAt(0).cloneRange()
+    }
+  }
+
+  function restoreSelection() {
+    const sel = window.getSelection()
+    if (sel && savedRange.current) {
+      sel.removeAllRanges()
+      sel.addRange(savedRange.current)
+    }
+  }
+
   function handleToolbar(item: typeof TOOLBAR[number]) {
+    restoreSelection()
     editorRef.current?.focus()
     if (item.block) {
       document.execCommand('formatBlock', false, item.block)
     } else if (item.cmd) {
       exec(item.cmd)
     }
+    onChange(editorRef.current?.innerHTML ?? '')
+  }
+
+  function handleInsertLink() {
+    saveSelection()
+    const sel = window.getSelection()
+    const selectedText = sel?.toString().trim() ?? ''
+
+    let url = prompt(
+      'Enter URL or email address:',
+      selectedText.includes('@') ? `mailto:${selectedText}` : selectedText.startsWith('http') ? selectedText : 'https://'
+    )
+    if (!url) return
+
+    // Auto-prefix
+    if (!url.startsWith('http') && !url.startsWith('mailto:') && !url.startsWith('#')) {
+      if (url.includes('@')) {
+        url = `mailto:${url}`
+      } else {
+        url = `https://${url}`
+      }
+    }
+
+    restoreSelection()
+    editorRef.current?.focus()
+
+    const currentSel = window.getSelection()
+    if (currentSel && currentSel.rangeCount > 0 && !currentSel.isCollapsed) {
+      // Text is selected — wrap it in an anchor with the EXACT selected range
+      const range = currentSel.getRangeAt(0)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.target = url.startsWith('mailto:') ? '_self' : '_blank'
+      anchor.rel = 'noopener noreferrer'
+      range.surroundContents(anchor)
+      currentSel.removeAllRanges()
+      onChange(editorRef.current?.innerHTML ?? '')
+    } else {
+      // No selection — insert the URL as a clickable link
+      const displayText = url.startsWith('mailto:') ? url.slice(7) : url
+      document.execCommand('insertHTML', false, `<a href="${url}">${displayText}</a>`)
+      onChange(editorRef.current?.innerHTML ?? '')
+    }
+  }
+
+  function handleRemoveLink() {
+    restoreSelection()
+    editorRef.current?.focus()
+    document.execCommand('unlink', false)
     onChange(editorRef.current?.innerHTML ?? '')
   }
 
@@ -88,6 +154,37 @@ export default function WysiwygEditor({ value, onChange, minHeight = 420 }: Wysi
             dangerouslySetInnerHTML={{ __html: item.icon }}
           />
         ))}
+
+        {/* Separator */}
+        <div style={{ width: 1, background: '#e5e7eb', margin: '2px 2px' }} />
+
+        {/* Link button */}
+        <button
+          type="button"
+          title="Insert / edit link"
+          onMouseDown={(e) => { e.preventDefault(); saveSelection(); handleInsertLink() }}
+          style={{ ...btnBase, color: '#2563eb' }}
+          onMouseOver={e => (e.currentTarget.style.background = '#e5e7eb')}
+          onMouseOut={e => (e.currentTarget.style.background = '#f3f4f6')}
+        >
+          🔗 Link
+        </button>
+
+        {/* Unlink button */}
+        <button
+          type="button"
+          title="Remove link"
+          onMouseDown={(e) => { e.preventDefault(); handleRemoveLink() }}
+          style={{ ...btnBase, color: '#dc2626' }}
+          onMouseOver={e => (e.currentTarget.style.background = '#e5e7eb')}
+          onMouseOut={e => (e.currentTarget.style.background = '#f3f4f6')}
+        >
+          ✂ Unlink
+        </button>
+
+        {/* Separator */}
+        <div style={{ width: 1, background: '#e5e7eb', margin: '2px 2px' }} />
+
         <button
           type="button"
           title="Clear formatting"
@@ -110,6 +207,8 @@ export default function WysiwygEditor({ value, onChange, minHeight = 420 }: Wysi
         contentEditable
         suppressContentEditableWarning
         onInput={handleInput}
+        onMouseUp={saveSelection}
+        onKeyUp={saveSelection}
         style={{
           minHeight, padding: '20px 24px',
           outline: 'none', fontSize: 15, lineHeight: 1.7,

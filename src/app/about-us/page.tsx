@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import { fixBrokenLinks } from '@/lib/fixBrokenLinks'
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3005'
 
@@ -47,7 +48,7 @@ export default function AboutUsPage() {
           {loading ? (
             <div style={{ textAlign: 'center', padding: '60px 0', color: 'rgba(0,0,0,0.3)', fontSize: 15 }}>Loading…</div>
           ) : content ? (
-            <div className="page-content" dangerouslySetInnerHTML={{ __html: content }} />
+            <div className="page-content" dangerouslySetInnerHTML={{ __html: fixBrokenLinks(content) }} />
           ) : (
             <p style={{ color: 'rgba(0,0,0,0.3)', fontSize: 15, textAlign: 'center', padding: '40px 0' }}>
               About Us content has not been published yet.
