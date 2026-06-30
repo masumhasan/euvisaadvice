@@ -87,7 +87,7 @@ export default function ServicesPage() {
               Our Services
             </h1>
             <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 'clamp(15px, 2vw, 18px)', maxWidth: 560, margin: '0 auto 36px', lineHeight: 1.7 }}>
-              Expert consulting for expats, remote workers, and digital nomads navigating life in Europe.
+               Expert consulting services for expats and remote workers in Germany and worldwide
             </p>
             <Link href="/legalchat" style={{ display: 'inline-block', background: '#c9a84c', color: '#1a1926', padding: '14px 36px', borderRadius: 50, fontWeight: 800, fontSize: 15, textDecoration: 'none', letterSpacing: '0.02em' }}>
               Get a Consultation

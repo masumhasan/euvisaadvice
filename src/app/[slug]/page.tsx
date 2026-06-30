@@ -75,7 +75,7 @@ export default function ServicePage() {
 
         {/* Content card */}
         <div style={{ maxWidth: '1000px', margin: '-80px auto 0', position: 'relative', zIndex: 10, padding: '0 20px', width: '100%', boxSizing: 'border-box' }}>
-          <div style={{ background: '#fff', padding: '60px 48px', borderRadius: '32px', boxShadow: '0 30px 60px rgba(0,0,0,0.08)', border: '1px solid rgba(0,0,0,0.02)', overflow: 'hidden' }}>
+          <div className="svc-card">
             {service.content ? (
               <div
                 className="rich-text-content"
@@ -89,15 +89,14 @@ export default function ServicePage() {
             )}
 
             {/* CTA */}
-            <div style={{ marginTop: '60px', padding: '40px', background: '#f8f7f2', borderRadius: '24px', border: '1px solid #eee', textAlign: 'center' }}>
-              <h3 style={{ fontSize: '24px', fontWeight: '800', color: '#1a1a2e', marginBottom: '12px' }}>Need assistance with this?</h3>
-              <p style={{ color: '#666', marginBottom: '24px', maxWidth: '500px', margin: '0 auto 24px' }}>
+            <div className="svc-cta">
+              <h3 className="svc-cta-title">Need assistance with this?</h3>
+              <p className="svc-cta-desc">
                 Our consultants are ready to guide you through the process.
               </p>
               <button
                 onClick={() => window.location.href = '/legaljoin'}
-                className="btn-primary"
-                style={{ padding: '14px 40px' }}
+                className="btn-primary svc-cta-btn"
               >
                 Start Your Consultation
               </button>
@@ -111,6 +110,12 @@ export default function ServicePage() {
       <Footer />
 
       <style jsx global>{`
+        .svc-card { background: #fff; padding: 60px 48px; border-radius: 32px; box-shadow: 0 30px 60px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.02); overflow: hidden; }
+        .svc-cta { margin-top: 60px; padding: 40px; background: #f8f7f2; border-radius: 24px; border: 1px solid #eee; text-align: center; }
+        .svc-cta-title { font-size: clamp(18px, 4vw, 24px); font-weight: 800; color: #1a1a2e; margin: 0 0 12px; }
+        .svc-cta-desc { color: #666; max-width: 500px; margin: 0 auto 24px; font-size: clamp(14px, 3vw, 16px); }
+        .svc-cta-btn { padding: 14px 40px !important; }
+
         .rich-text-content h1 { font-size: 36px; color: #1a1a2e; margin-bottom: 30px; font-weight: 800; letter-spacing: -0.02em; }
         .rich-text-content h2 { font-size: 28px; color: #1a1a2e; margin-top: 48px; margin-bottom: 20px; font-weight: 700; border-bottom: 2px solid #f8f7f2; padding-bottom: 10px; }
         .rich-text-content h3 { font-size: 22px; color: #1a1a2e; margin-top: 36px; margin-bottom: 16px; font-weight: 700; }
@@ -121,11 +126,14 @@ export default function ServicePage() {
         .rich-text-content img { max-width: 100%; height: auto; border-radius: 20px; margin: 40px 0; box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
         .rich-text-content a { color: #c9a84c; font-weight: 700; text-decoration: none; border-bottom: 1px solid rgba(201,168,76,0.3); }
         .rich-text-content a:hover { border-bottom-color: #c9a84c; }
+
         @media (max-width: 768px) {
+          .svc-card { padding: 32px 20px; border-radius: 24px; }
+          .svc-cta { padding: 28px 16px; }
+          .svc-cta-btn { padding: 13px 28px !important; font-size: 14px !important; }
           .rich-text-content { font-size: 15px !important; }
           .rich-text-content h1 { font-size: 26px; }
           .rich-text-content h2 { font-size: 20px; }
-          div[style*="padding: '60px 48px'"] { padding: 32px 20px !important; }
         }
       `}</style>
     </>

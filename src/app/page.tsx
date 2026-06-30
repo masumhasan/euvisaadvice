@@ -46,8 +46,7 @@ function Hero() {
           </h1>
 
           <p className="hero-sub">
-            Expert consulting for immigrants in Germany or Digital nomads
-            leaving Germany
+            Expert consulting services for expats and remote workers in Germany and worldwide
           </p>
 
           <div className="hero-cta">
