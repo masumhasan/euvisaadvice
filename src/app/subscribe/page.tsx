@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getToken, clearToken } from '@/lib/auth'
 
@@ -156,6 +156,14 @@ function PlatinumBooking({ onBack }: { onBack: () => void }) {
 
 /* ── Main page ───────────────────────────────────────────── */
 export default function SubscribePage() {
+  return (
+    <Suspense>
+      <SubscribePageInner />
+    </Suspense>
+  )
+}
+
+function SubscribePageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [mounted, setMounted] = useState(false)
