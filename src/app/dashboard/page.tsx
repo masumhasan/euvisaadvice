@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ChatIcon, EuroIcon, FolderIcon, ShieldIcon } from '@/components/Icons'
 import { getAdminToken } from '@/lib/adminAuth'
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3005'
@@ -11,6 +10,12 @@ type ActivityItem = {
   id: string
   action: string
   timestamp: string
+}
+
+interface RevenueStats {
+  totalRevenue: number
+  thisMonthRevenue: number
+  totalSubscribers: number
 }
 
 function formatRelativeTime(iso: string): string {
@@ -24,19 +29,24 @@ function formatRelativeTime(iso: string): string {
   return `${days}D AGO`
 }
 
+function formatCurrency(n: number): string {
+  return `€${n.toLocaleString('en-IE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false)
   const [activities, setActivities] = useState<ActivityItem[]>([])
   const [activityLoading, setActivityLoading] = useState(true)
   const [activityError, setActivityError] = useState('')
+  const [stats, setStats] = useState<RevenueStats | null>(null)
+  const [statsLoading, setStatsLoading] = useState(true)
 
   useEffect(() => {
     setMounted(true)
-
     const token = getAdminToken()
-    fetch(`${BACKEND}/api/admin/activity`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    })
+    const headers = token ? { Authorization: `Bearer ${token}` } : {} as Record<string, string>
+
+    fetch(`${BACKEND}/api/admin/activity`, { headers })
       .then(async (res) => {
         if (!res.ok) throw new Error('Failed to load activity')
         const data = await res.json()
@@ -44,39 +54,42 @@ export default function DashboardPage() {
       })
       .catch(() => setActivityError('Could not load recent activity. Please try again later.'))
       .finally(() => setActivityLoading(false))
+
+    fetch(`${BACKEND}/api/admin/stripe/revenue-stats`, { headers })
+      .then(r => r.json())
+      .then(d => setStats(d))
+      .catch(() => {/* stats fail silently */})
+      .finally(() => setStatsLoading(false))
   }, [])
 
   if (!mounted) return null
 
-  const stats = [
-    { label: 'TOTAL CHATS TODAY', value: '24', icon: <ChatIcon className="text-[#c9a84c]" /> },
-    { label: 'MONTHLY REVENUE', value: '€4,260', icon: <EuroIcon className="text-[#c9a84c]" /> },
-    { label: 'ACTIVE CASES', value: '38', icon: <FolderIcon className="text-[#c9a84c]" /> },
-    { label: 'PENDING VERIFICATIONS', value: '7', icon: <ShieldIcon className="text-[#c9a84c]" /> },
+  const statCards = [
+    { label: 'Total Revenue',        value: statsLoading ? '—' : stats ? formatCurrency(stats.totalRevenue) : '—' },
+    { label: 'This Month',           value: statsLoading ? '—' : stats ? formatCurrency(stats.thisMonthRevenue) : '—' },
+    { label: 'Active Subscriptions', value: statsLoading ? '—' : stats ? stats.totalSubscribers.toString() : '—' },
   ]
 
   return (
     <div className="dash-page">
       <style>{`
         .dash-page { flex: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; gap: 32px; }
-        .dash-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; }
+        .dash-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
         .dash-activity { background: #fff; border-radius: 32px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.03); padding: 40px; flex-shrink: 0; }
         .dash-activity-row { display: flex; justify-content: space-between; align-items: center; font-size: 14.5px; gap: 12px; }
+        @media (max-width: 900px) { .dash-stats-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 768px) {
           .dash-page { padding: 20px 16px; gap: 20px; }
-          .dash-stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+          .dash-stats-grid { grid-template-columns: 1fr; gap: 12px; }
           .dash-activity { padding: 24px; }
           .dash-activity-row { flex-direction: column; align-items: flex-start; gap: 4px; }
         }
-        @media (max-width: 480px) {
-          .dash-page { padding: 16px 12px; }
-          .dash-stats-grid { grid-template-columns: 1fr 1fr; }
-        }
+        @media (max-width: 480px) { .dash-page { padding: 16px 12px; } }
       `}</style>
 
-      {/* Top 4 Stats Boxes */}
+      {/* Top Stats */}
       <div className="dash-stats-grid">
-        {stats.map((stat, i) => (
+        {statCards.map((card, i) => (
           <div key={i} style={{
             background: '#ffffff',
             padding: '28px',
@@ -85,16 +98,15 @@ export default function DashboardPage() {
             border: '1px solid rgba(0,0,0,0.03)',
             display: 'flex',
             flexDirection: 'column',
-            height: '160px'
+            gap: 12,
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-              <span style={{ fontSize: '11.5px', color: 'rgba(0,0,0,0.35)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                {stat.label}
-              </span>
-              <div style={{ display: 'flex' }}>{stat.icon}</div>
-            </div>
-            <div style={{ fontSize: '42px', fontWeight: '600', color: '#1a1a2e', marginTop: 'auto', lineHeight: '1', letterSpacing: '-0.02em' }}>
-              {stat.value}
+            <span style={{ fontSize: '12px', color: 'rgba(0,0,0,0.3)', fontWeight: '600' }}>
+              {card.label}
+            </span>
+            <div style={{ fontSize: '32px', fontWeight: '600', color: '#1a1a2e', lineHeight: 1 }}>
+              {statsLoading
+                ? <span style={{ color: '#ccc', fontSize: 24 }}>Loading…</span>
+                : card.value}
             </div>
           </div>
         ))}
