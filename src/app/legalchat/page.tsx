@@ -202,7 +202,9 @@ export default function ChatPage() {
           router.push('/client-chat')
           return
         }
-        if (!data.user?.subscriptionPlan || data.user.subscriptionPlan === 'none') {
+        const hasPlan = data.user?.subscriptionPlan && data.user.subscriptionPlan !== 'none'
+        const hasActiveStatus = data.user?.subscriptionStatus && data.user.subscriptionStatus !== 'none' && data.user.subscriptionStatus !== 'canceled'
+        if (!hasPlan && !hasActiveStatus) {
           router.push('/subscribe')
           return
         }

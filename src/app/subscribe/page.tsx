@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { getToken, clearToken } from '@/lib/auth'
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3005'
@@ -157,9 +157,12 @@ function PlatinumBooking({ onBack }: { onBack: () => void }) {
 /* ── Main page ───────────────────────────────────────────── */
 export default function SubscribePage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [mounted, setMounted] = useState(false)
   const [packages, setPackages] = useState<Package[]>([])
   const [currentPlan, setCurrentPlan] = useState<string>('none')
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string>('none')
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false)
   const [loading, setLoading] = useState(true)
   const [selecting, setSelecting] = useState<string | null>(null)
   const [error, setError] = useState('')
@@ -171,6 +174,40 @@ export default function SubscribePage() {
     const token = getToken()
     if (!token) { router.push('/legal-login'); return }
 
+    // Handle Stripe redirect back
+    const payment = searchParams.get('payment')
+    if (payment === 'success') {
+      const tier = searchParams.get('tier') ?? ''
+      const sessionId = searchParams.get('session_id') ?? ''
+      setSuccessPlan(tier)
+
+      // Verify the completed checkout session with Stripe and update the user DB.
+      // Retry a few times to handle any brief Stripe propagation delay.
+      const verifyAndRedirect = async () => {
+        for (let i = 0; i < 6; i++) {
+          try {
+            const r = await fetch(`${BACKEND}/api/stripe/verify-session`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ sessionId, tier }),
+            })
+            const d = await r.json()
+            if (d.synced) break
+            console.warn(`[Stripe] verify-session attempt ${i + 1}: synced=${d.synced} reason=${d.reason}`)
+          } catch (e) {
+            console.warn(`[Stripe] verify-session attempt ${i + 1} failed:`, e)
+          }
+          await new Promise(resolve => setTimeout(resolve, 1000))
+        }
+        router.push('/legalchat')
+      }
+
+      verifyAndRedirect()
+    }
+
     Promise.all([
       fetch(`${BACKEND}/api/admin/public-packages`).then(r => r.json()),
       fetch(`${BACKEND}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
@@ -179,20 +216,20 @@ export default function SubscribePage() {
         (a: Package, b: Package) => (TIER_ORDER[a.tier] ?? 0) - (TIER_ORDER[b.tier] ?? 0),
       )
       setPackages(sorted)
-      setCurrentPlan(userData.user?.subscriptionPlan ?? 'none')
+      const user = userData.user ?? {}
+      setCurrentPlan(user.subscriptionPlan ?? 'none')
+      setSubscriptionStatus(user.subscriptionStatus ?? 'none')
+      setCancelAtPeriodEnd(user.cancelAtPeriodEnd ?? false)
     }).catch(() => {
       setError('Failed to load subscription plans.')
     }).finally(() => setLoading(false))
-  }, [router])
+  }, [router, searchParams])
 
   const handleSelect = async (pkg: Package) => {
-    // Don't allow selecting an equal or lower plan
-    if ((TIER_ORDER[pkg.tier] ?? 0) <= (TIER_ORDER[currentPlan] ?? -1)) return
-
     setError('')
     setSelecting(pkg.id)
     try {
-      const res = await fetch(`${BACKEND}/api/auth/subscribe`, {
+      const res = await fetch(`${BACKEND}/api/stripe/create-checkout-session`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -201,20 +238,31 @@ export default function SubscribePage() {
         body: JSON.stringify({ tier: pkg.tier }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Subscription failed.')
+      if (!res.ok) throw new Error(data.error || 'Could not start checkout.')
 
-      setCurrentPlan(pkg.tier)
-      setSuccessPlan(pkg.tier)
-
-      if (pkg.tier === 'platinum') {
-        setTimeout(() => setShowPlatinumBooking(true), 1200)
-      } else {
-        setTimeout(() => router.push('/legalchat'), 2500)
-      }
+      // Redirect to Stripe Checkout (or Customer Portal if already subscribed)
+      window.location.href = data.url
     } catch (err) {
       setError((err as Error).message)
-    } finally {
       setSelecting(null)
+    }
+  }
+
+  const handleManage = async () => {
+    try {
+      const res = await fetch(`${BACKEND}/api/stripe/customer-portal`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify({ returnUrl: window.location.href }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Could not open billing portal.')
+      window.location.href = data.url
+    } catch (err) {
+      setError((err as Error).message)
     }
   }
 
@@ -243,9 +291,27 @@ export default function SubscribePage() {
         </h1>
         <p style={{ color: '#8b929e', fontSize: 16, maxWidth: 480, margin: '0 auto', lineHeight: 1.6 }}>
           {currentPlan !== 'none'
-            ? `You are on the ${TIER_META[currentPlan]?.badge ?? currentPlan} plan. Upgrade to unlock more consultations.`
+            ? cancelAtPeriodEnd
+              ? `Your ${TIER_META[currentPlan]?.badge ?? currentPlan} plan is scheduled to cancel at the end of the billing period.`
+              : `You are on the ${TIER_META[currentPlan]?.badge ?? currentPlan} plan. Upgrade or manage your subscription below.`
             : 'Select a subscription plan to start your legal consultation. Upgrade anytime as your needs grow.'}
         </p>
+        {/* Manage subscription button for existing subscribers */}
+        {currentPlan !== 'none' && subscriptionStatus === 'active' && (
+          <button
+            onClick={handleManage}
+            style={{
+              marginTop: 20, background: 'none',
+              border: '1.5px solid rgba(255,255,255,0.15)',
+              color: '#9ca3af', padding: '10px 24px', borderRadius: 10,
+              fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            }}
+            onMouseOver={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.4)'; (e.currentTarget as HTMLElement).style.color = '#f0f0f0' }}
+            onMouseOut={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.15)'; (e.currentTarget as HTMLElement).style.color = '#9ca3af' }}
+          >
+            Manage / Cancel Subscription →
+          </button>
+        )}
       </div>
 
       {/* Error */}
@@ -274,7 +340,7 @@ export default function SubscribePage() {
           const isSelecting = selecting === pkg.id
           const isCurrent = pkg.tier === currentPlan
           const isLower = (TIER_ORDER[pkg.tier] ?? 0) < (TIER_ORDER[currentPlan] ?? -1)
-          const isDisabled = isCurrent || isLower || !!selecting
+          const isDisabled = isCurrent || !!selecting
 
           return (
             <div
@@ -357,7 +423,7 @@ export default function SubscribePage() {
               <h3 style={{ color: '#f0f0f0', fontSize: 22, fontWeight: 700, margin: '0 0 6px' }}>{pkg.name}</h3>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 16 }}>
                 <span style={{ color: meta.accent, fontSize: 34, fontWeight: 800 }}>
-                  ${pkg.price}
+                  €{pkg.price}
                 </span>
                 <span style={{ color: '#6b7280', fontSize: 14 }}>/month</span>
               </div>
@@ -407,10 +473,12 @@ export default function SubscribePage() {
                 onMouseOut={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)' }}
               >
                 {isSelecting
-                  ? 'Activating…'
+                  ? 'Redirecting to Stripe…'
                   : isCurrent
-                    ? 'Plan Enabled'
-                    : `Upgrade to ${meta.badge}`}
+                    ? 'Current Plan'
+                    : isLower
+                      ? 'Downgrade via Portal'
+                      : `Subscribe — ${meta.badge}`}
               </button>
             </div>
           )
@@ -419,7 +487,7 @@ export default function SubscribePage() {
 
       {/* Footer note */}
       <p style={{ color: '#4b5563', fontSize: 13, marginTop: 48, textAlign: 'center' }}>
-        No payment required now — activate your plan and upgrade anytime.
+        Payments are processed securely by Stripe. Cancel anytime from your profile.
       </p>
 
       <style>{`

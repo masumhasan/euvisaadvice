@@ -64,6 +64,11 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState('')
   const [subscriptionPlan, setSubscriptionPlan] = useState('')
+  const [subscriptionStatus, setSubscriptionStatus] = useState('none')
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false)
+  const [currentPeriodEnd, setCurrentPeriodEnd] = useState<string | null>(null)
+  const [billingLoading, setBillingLoading] = useState(false)
+  const [billingError, setBillingError] = useState('')
   const [loggingOut, setLoggingOut] = useState(false)
 
   // Profile data
@@ -112,6 +117,9 @@ export default function ProfilePage() {
         if (plan && plan !== 'none') {
           setSubscriptionPlan(plan.charAt(0).toUpperCase() + plan.slice(1) + ' Member')
         }
+        setSubscriptionStatus(data.user.subscriptionStatus ?? 'none')
+        setCancelAtPeriodEnd(data.user.cancelAtPeriodEnd ?? false)
+        setCurrentPeriodEnd(data.user.currentPeriodEnd ?? null)
         setAuthChecked(true)
       })
       .catch(() => {
@@ -179,6 +187,28 @@ export default function ProfilePage() {
     } finally {
       setPassSaving(false)
       setTimeout(() => setPassMsg(''), 4000)
+    }
+  }
+
+  async function handleManageBilling() {
+    setBillingLoading(true)
+    setBillingError('')
+    try {
+      const res = await fetch(`${BACKEND}/api/stripe/customer-portal`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify({ returnUrl: window.location.href }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Could not open billing portal.')
+      window.location.href = data.url
+    } catch (err) {
+      setBillingError((err as Error).message)
+    } finally {
+      setBillingLoading(false)
     }
   }
 
@@ -390,15 +420,72 @@ export default function ProfilePage() {
           {activeTab === 'billing' && (
             <div className="fade-in">
               <div className="profile-section-header">
-                <h2 className="profile-section-title">Billing & Transactions</h2>
+                <h2 className="profile-section-title">Subscription & Billing</h2>
               </div>
-              <div style={{ background: 'linear-gradient(to right, #f8f9fa, #fff)', padding: '24px', borderRadius: '16px', border: '1px solid #eaeaea', borderLeft: '4px solid #c9a84c', marginBottom: '32px' }}>
-                <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#1a1a2e', marginBottom: '6px' }}>Payment History</h3>
-                <p style={{ fontSize: '14px', color: '#4a4a68', margin: 0 }}>View your past transactions and billing details.</p>
-              </div>
-              <div style={{ padding: '40px', background: '#fff', borderRadius: '16px', border: '1px solid #eee', textAlign: 'center' }}>
-                <p style={{ color: '#888', fontSize: '14px', margin: 0 }}>No billing history yet. Subscriptions and payments are coming soon.</p>
-              </div>
+
+              {billingError && (
+                <div style={{ padding: '12px 16px', borderRadius: '10px', background: '#fef2f2', color: '#dc2626', fontSize: '14px', marginBottom: '20px', fontWeight: '500' }}>
+                  {billingError}
+                </div>
+              )}
+
+              {subscriptionPlan ? (
+                <>
+                  {/* Current plan card */}
+                  <div style={{ background: 'linear-gradient(135deg,#1a1608,#0d0f0a)', border: '1.5px solid #c9a84c44', borderRadius: '18px', padding: '28px', marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+                      <div>
+                        <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#9ca3af', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600 }}>Active Plan</p>
+                        <h3 style={{ margin: '0 0 6px', fontSize: '22px', fontWeight: '800', color: '#c9a84c' }}>{subscriptionPlan}</h3>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <span style={{
+                            display: 'inline-block', padding: '3px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 700,
+                            background: subscriptionStatus === 'active' ? '#06402b' : subscriptionStatus === 'past_due' ? '#431407' : '#1a1a1a',
+                            color: subscriptionStatus === 'active' ? '#34d399' : subscriptionStatus === 'past_due' ? '#fb923c' : '#9ca3af',
+                          }}>
+                            {subscriptionStatus === 'active' && !cancelAtPeriodEnd && 'Active'}
+                            {subscriptionStatus === 'active' && cancelAtPeriodEnd && 'Cancels at period end'}
+                            {subscriptionStatus === 'past_due' && 'Payment overdue'}
+                            {subscriptionStatus === 'trialing' && 'Trial'}
+                            {subscriptionStatus === 'canceled' && 'Canceled'}
+                            {subscriptionStatus === 'incomplete' && 'Incomplete'}
+                            {subscriptionStatus === 'none' && 'Active'}
+                          </span>
+                          {currentPeriodEnd && (
+                            <span style={{ fontSize: '13px', color: '#6b7280' }}>
+                              {cancelAtPeriodEnd ? 'Access until' : 'Renews'} {new Date(currentPeriodEnd).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleManageBilling}
+                        disabled={billingLoading}
+                        style={{ padding: '12px 24px', borderRadius: '12px', border: '1.5px solid #c9a84c', background: 'transparent', color: '#c9a84c', fontWeight: 700, fontSize: '14px', cursor: billingLoading ? 'default' : 'pointer', opacity: billingLoading ? 0.7 : 1 }}
+                      >
+                        {billingLoading ? 'Opening…' : 'Manage Subscription →'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div style={{ padding: '20px', background: '#f9f9f9', borderRadius: '14px', border: '1px solid #eaeaea' }}>
+                    <p style={{ margin: 0, fontSize: '13px', color: '#6b7280', lineHeight: 1.6 }}>
+                      Use <strong>Manage Subscription</strong> to upgrade, downgrade, update payment method, or cancel your plan via the Stripe billing portal.
+                      If you cancel, your access remains active until the end of the current billing period.
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '48px 24px', background: '#fff', borderRadius: '18px', border: '1px solid #eee' }}>
+                  <p style={{ color: '#888', fontSize: '15px', marginBottom: '20px' }}>You don&apos;t have an active subscription yet.</p>
+                  <a
+                    href="/subscribe"
+                    style={{ display: 'inline-block', padding: '13px 32px', borderRadius: '12px', background: 'linear-gradient(135deg,#b8882a,#e6c96a)', color: '#0d1117', fontWeight: 700, fontSize: '15px', textDecoration: 'none' }}
+                  >
+                    View Plans
+                  </a>
+                </div>
+              )}
             </div>
           )}
 

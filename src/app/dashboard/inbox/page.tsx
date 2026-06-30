@@ -78,6 +78,8 @@ function BotMessage({ content }: { content: string }) {
   )
 }
 
+const PAGE_SIZE = 10
+
 export default function InboxPage() {
   const [mounted, setMounted] = useState(false)
   const [search, setSearch] = useState('')
@@ -86,6 +88,7 @@ export default function InboxPage() {
   const [error, setError] = useState('')
   const [selectedClient, setSelectedClient] = useState<ClientChatDetail | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
+  const [page, setPage] = useState(1)
 
   useEffect(() => {
     setMounted(true)
@@ -107,6 +110,31 @@ export default function InboxPage() {
     c.name.toLowerCase().includes(search.toLowerCase()) ||
     c.email.toLowerCase().includes(search.toLowerCase()),
   )
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const visibleClients = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
+
+  function handleSearch(value: string) {
+    setSearch(value)
+    setPage(1)
+  }
+
+  function goToPage(p: number) {
+    setPage(Math.max(1, Math.min(p, totalPages)))
+  }
+
+  function buildPageNumbers(): (number | '...')[] {
+    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1)
+    const pages: (number | '...')[] = [1]
+    if (safePage > 3) pages.push('...')
+    const start = Math.max(2, safePage - 1)
+    const end = Math.min(totalPages - 1, safePage + 1)
+    for (let i = start; i <= end; i++) pages.push(i)
+    if (safePage < totalPages - 2) pages.push('...')
+    pages.push(totalPages)
+    return pages
+  }
 
   const openTranscript = async (id: string) => {
     setDetailLoading(true)
@@ -175,7 +203,7 @@ export default function InboxPage() {
             type="text"
             placeholder="Search by name or email..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
           />
         </div>
       </div>
@@ -197,7 +225,7 @@ export default function InboxPage() {
         <div>
           {loading && <div style={{ padding: 40, textAlign: 'center', color: 'rgba(0,0,0,0.4)', fontSize: 14 }}>Loading client chats…</div>}
           {!loading && filtered.length === 0 && <div style={{ padding: 40, textAlign: 'center', color: 'rgba(0,0,0,0.4)', fontSize: 14 }}>No client chats yet.</div>}
-          {filtered.map((client, index) => (
+          {visibleClients.map((client, index) => (
             <div key={client.id} className="inbox-row" style={{ backgroundColor: index % 2 === 1 ? '#fcfcfb' : '#fff' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
                 <div style={{ width: 40, height: 40, borderRadius: '50%', backgroundColor: colorFor(client.id), display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 13, flexShrink: 0 }}>
@@ -227,7 +255,7 @@ export default function InboxPage() {
       <div className="inbox-cards">
         {loading && <div style={{ padding: 32, textAlign: 'center', color: 'rgba(0,0,0,0.4)', fontSize: 14 }}>Loading…</div>}
         {!loading && filtered.length === 0 && <div style={{ padding: 32, textAlign: 'center', color: 'rgba(0,0,0,0.4)', fontSize: 14 }}>No client chats yet.</div>}
-        {filtered.map((client) => (
+        {visibleClients.map((client) => (
           <div key={client.id} className="inbox-card">
             <div style={{ width: 44, height: 44, borderRadius: '50%', backgroundColor: colorFor(client.id), display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 14, flexShrink: 0 }}>
               {initialsOf(client.name)}
@@ -248,11 +276,46 @@ export default function InboxPage() {
         ))}
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10 }}>
-        <button style={paginationBtnStyle}><ChevronLeftIcon style={{ width: 16, height: 16 }} /></button>
-        <button style={{ ...paginationBtnStyle, backgroundColor: '#c9a84c', color: '#fff', border: 'none' }}>1</button>
-        <button style={paginationBtnStyle}><ChevronRightIcon style={{ width: 16, height: 16 }} /></button>
-      </div>
+      {/* Pagination */}
+      {!loading && !error && filtered.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button
+              onClick={() => goToPage(safePage - 1)}
+              disabled={safePage === 1}
+              style={{ ...paginationBtnStyle, opacity: safePage === 1 ? 0.35 : 1, cursor: safePage === 1 ? 'default' : 'pointer' }}
+            >
+              <ChevronLeftIcon style={{ width: 16, height: 16 }} />
+            </button>
+
+            {buildPageNumbers().map((p, i) =>
+              p === '...'
+                ? <span key={`ellipsis-${i}`} style={{ padding: '0 4px', color: 'rgba(0,0,0,0.3)', fontSize: 13 }}>…</span>
+                : <button
+                    key={p}
+                    onClick={() => goToPage(p as number)}
+                    style={{
+                      ...paginationBtnStyle,
+                      ...(p === safePage ? { backgroundColor: '#c9a84c', color: '#fff', border: 'none' } : {}),
+                    }}
+                  >
+                    {p}
+                  </button>
+            )}
+
+            <button
+              onClick={() => goToPage(safePage + 1)}
+              disabled={safePage === totalPages}
+              style={{ ...paginationBtnStyle, opacity: safePage === totalPages ? 0.35 : 1, cursor: safePage === totalPages ? 'default' : 'pointer' }}
+            >
+              <ChevronRightIcon style={{ width: 16, height: 16 }} />
+            </button>
+          </div>
+          <p style={{ fontSize: 12, color: 'rgba(0,0,0,0.3)', margin: 0 }}>
+            Showing {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} of {filtered.length} clients
+          </p>
+        </div>
+      )}
 
       {/* ── Transcript Modal ── */}
       {selectedClient && (
@@ -325,6 +388,6 @@ export default function InboxPage() {
 
 const paginationBtnStyle: React.CSSProperties = {
   width: 36, height: 36, borderRadius: 8, border: '1px solid #f0f0f0',
-  background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+  backgroundColor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
   fontSize: 13, fontWeight: 600, color: 'rgba(0,0,0,0.5)', cursor: 'pointer',
 }

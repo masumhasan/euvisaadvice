@@ -39,6 +39,8 @@ export default function ChatbotPackagesPage() {
   const [tier, setTier] = useState<'silver' | 'gold' | 'platinum'>('silver')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
+  const [syncing, setSyncing] = useState(false)
+  const [syncMsg, setSyncMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -118,6 +120,25 @@ export default function ChatbotPackagesPage() {
     setShowAddForm(true)
   }
 
+  async function handleStripeSync() {
+    setSyncing(true)
+    setSyncMsg(null)
+    try {
+      const res = await fetch(`${BACKEND}/api/admin/stripe/sync`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${getAdminToken()}` },
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Sync failed.')
+      setSyncMsg({ type: 'ok', text: `✅ Synced ${data.synced} package(s) to Stripe.` })
+    } catch (err) {
+      setSyncMsg({ type: 'err', text: `❌ ${(err as Error).message}` })
+    } finally {
+      setSyncing(false)
+      setTimeout(() => setSyncMsg(null), 6000)
+    }
+  }
+
   async function handleDeletePackage(id: string) {
     if (!confirm('Are you sure you want to delete this package?')) return
     const token = getAdminToken()
@@ -152,11 +173,31 @@ export default function ChatbotPackagesPage() {
         }
       `}</style>
 
+      {syncMsg && (
+        <div style={{ padding: '12px 16px', borderRadius: '10px', background: syncMsg.type === 'ok' ? '#e6f4ea' : '#fef2f2', color: syncMsg.type === 'ok' ? '#1e8e3e' : '#dc2626', fontSize: '14px', fontWeight: 500 }}>
+          {syncMsg.text}
+        </div>
+      )}
+
       <div className="pkg-header">
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: '500', color: '#1a1a2e', margin: 0 }}>Manage Packages</h2>
           <p style={{ color: 'rgba(0,0,0,0.4)', fontSize: '14px', marginTop: '4px' }}>Create and update your chatbot pricing tiers.</p>
         </div>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          <button
+            onClick={handleStripeSync}
+            disabled={syncing}
+            style={{
+              backgroundColor: '#1a472a', color: '#ffffff', border: 'none',
+              padding: '12px 20px', borderRadius: '12px', fontWeight: '600',
+              display: 'flex', alignItems: 'center', gap: '8px', cursor: syncing ? 'default' : 'pointer',
+              transition: 'all 0.2s ease', fontSize: '12px', whiteSpace: 'nowrap',
+              opacity: syncing ? 0.7 : 1,
+            }}
+          >
+            {syncing ? 'Syncing…' : 'Sync to Stripe'}
+          </button>
         <button
           onClick={() => {
             if (showAddForm) resetForm()
@@ -191,6 +232,7 @@ export default function ChatbotPackagesPage() {
           <PlusIcon style={{ width: "12px", height: "12px" }} />
           {showAddForm ? 'Cancel' : 'Add Package'}
         </button>
+        </div>
       </div>
 
       {showAddForm && (

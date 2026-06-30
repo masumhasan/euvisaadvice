@@ -51,6 +51,8 @@ const badgeStyle: React.CSSProperties = {
   fontSize: '11px', fontWeight: '600', whiteSpace: 'nowrap',
 }
 
+const PAGE_SIZE = 10
+
 export default function ClientsPage() {
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
@@ -59,6 +61,7 @@ export default function ClientsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [actionError, setActionError] = useState('')
+  const [page, setPage] = useState(1)
 
   useEffect(() => {
     setMounted(true)
@@ -112,9 +115,34 @@ export default function ClientsPage() {
 
   if (!mounted) return null
 
-  const visibleClients = clients.filter((c) =>
+  const filteredClients = clients.filter((c) =>
     `${c.name} ${c.email}`.toLowerCase().includes(search.toLowerCase()),
   )
+  const totalPages = Math.max(1, Math.ceil(filteredClients.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const visibleClients = filteredClients.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
+
+  function handleSearch(value: string) {
+    setSearch(value)
+    setPage(1)
+  }
+
+  function goToPage(p: number) {
+    setPage(Math.max(1, Math.min(p, totalPages)))
+  }
+
+  // Build page number list (max 5 visible, with ellipsis logic)
+  function buildPageNumbers(): (number | '...')[] {
+    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1)
+    const pages: (number | '...')[] = [1]
+    if (safePage > 3) pages.push('...')
+    const start = Math.max(2, safePage - 1)
+    const end = Math.min(totalPages - 1, safePage + 1)
+    for (let i = start; i <= end; i++) pages.push(i)
+    if (safePage < totalPages - 2) pages.push('...')
+    pages.push(totalPages)
+    return pages
+  }
 
   return (
     <div className="dash-page">
@@ -165,7 +193,7 @@ export default function ClientsPage() {
             type="text"
             placeholder="Search by name or email..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
           />
         </div>
       </div>
@@ -260,11 +288,46 @@ export default function ClientsPage() {
         ))}
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10 }}>
-        <button style={paginationBtnStyle}><ChevronLeftIcon style={{ width: 16, height: 16 }} /></button>
-        <button style={{ ...paginationBtnStyle, backgroundColor: '#c9a84c', color: '#fff', border: 'none' }}>1</button>
-        <button style={paginationBtnStyle}><ChevronRightIcon style={{ width: 16, height: 16 }} /></button>
-      </div>
+      {/* Pagination */}
+      {!loading && !error && filteredClients.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button
+              onClick={() => goToPage(safePage - 1)}
+              disabled={safePage === 1}
+              style={{ ...paginationBtnStyle, opacity: safePage === 1 ? 0.35 : 1, cursor: safePage === 1 ? 'default' : 'pointer' }}
+            >
+              <ChevronLeftIcon style={{ width: 16, height: 16 }} />
+            </button>
+
+            {buildPageNumbers().map((p, i) =>
+              p === '...'
+                ? <span key={`ellipsis-${i}`} style={{ padding: '0 4px', color: 'rgba(0,0,0,0.3)', fontSize: 13 }}>…</span>
+                : <button
+                    key={p}
+                    onClick={() => goToPage(p as number)}
+                    style={{
+                      ...paginationBtnStyle,
+                      ...(p === safePage ? { backgroundColor: '#c9a84c', color: '#fff', border: 'none' } : {}),
+                    }}
+                  >
+                    {p}
+                  </button>
+            )}
+
+            <button
+              onClick={() => goToPage(safePage + 1)}
+              disabled={safePage === totalPages}
+              style={{ ...paginationBtnStyle, opacity: safePage === totalPages ? 0.35 : 1, cursor: safePage === totalPages ? 'default' : 'pointer' }}
+            >
+              <ChevronRightIcon style={{ width: 16, height: 16 }} />
+            </button>
+          </div>
+          <p style={{ fontSize: 12, color: 'rgba(0,0,0,0.3)', margin: 0 }}>
+            Showing {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filteredClients.length)} of {filteredClients.length} members
+          </p>
+        </div>
+      )}
 
       <footer style={{ paddingBottom: 10 }}>
         <p style={{ fontSize: 11, color: 'rgba(0,0,0,0.2)', fontWeight: 600, textAlign: 'center' }}>
@@ -277,6 +340,6 @@ export default function ClientsPage() {
 
 const paginationBtnStyle: React.CSSProperties = {
   width: 36, height: 36, borderRadius: 8, border: '1px solid #f0f0f0',
-  background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+  backgroundColor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
   fontSize: 13, fontWeight: 600, color: 'rgba(0,0,0,0.5)', cursor: 'pointer',
 }
