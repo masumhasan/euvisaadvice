@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { getAdminToken } from '@/lib/adminAuth'
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3005'
@@ -116,9 +115,6 @@ export default function DashboardPage() {
       <div className="dash-activity">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(0,0,0,0.05)', paddingBottom: '20px', marginBottom: '20px', gap: 12 }}>
           <h2 style={{ fontSize: '20px', fontWeight: '500', color: '#1a1a2e', margin: 0 }}>Recent Activity</h2>
-          <Link href="/activity" style={{ fontSize: '11px', fontWeight: '500', color: '#1a1a2e', textTransform: 'uppercase', letterSpacing: '0.2em', textDecoration: 'none', whiteSpace: 'nowrap' }}>
-            VIEW ALL
-          </Link>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '20px' }}>
