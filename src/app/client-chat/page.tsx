@@ -685,12 +685,12 @@ export default function ExternalChatPage() {
       <main className="chat-main" style={{ marginLeft: 0, display: 'flex', flexDirection: 'column' }}>
 
         <header className="chat-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div className="chat-bot-info">
-              <div className="chat-bot-avatar" style={{ width: 44, height: 44, borderRadius: '12px', background: '#f8f9fa', border: '1px solid #eee' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+            <div className="chat-bot-info" style={{ minWidth: 0 }}>
+              <div className="chat-bot-avatar" style={{ width: 44, height: 44, borderRadius: '12px', background: '#f8f9fa', border: '1px solid #eee', flexShrink: 0 }}>
                 <ScalesIcon style={{ width: 22, height: 22 }} />
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                 <div className="chat-bot-name" style={{ fontSize: '15px' }}>Legal AI Assistant</div>
                 <div className="chat-bot-status">
                   <span className="status-dot" />
@@ -700,16 +700,16 @@ export default function ExternalChatPage() {
             </div>
           </div>
 
-          <div className="hide-mobile" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
             {stage.kind === 'chat' && (
               <button
                 onClick={handleSignOut}
-                style={{ fontSize: '13px', color: '#1a1a2e', fontWeight: '600', background: 'none', border: '1px solid #ddd', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer' }}
+                style={{ fontSize: '13px', color: '#1a1a2e', fontWeight: '600', background: 'none', border: '1px solid #ddd', padding: '7px 14px', borderRadius: '8px', cursor: 'pointer', whiteSpace: 'nowrap' }}
               >
                 Sign out
               </button>
             )}
-            <Link href="/" style={{ fontSize: '13px', color: '#1a1a2e', fontWeight: '600', textDecoration: 'none', border: '1px solid #ddd', padding: '8px 16px', borderRadius: '8px' }}>
+            <Link href="/" style={{ fontSize: '13px', color: '#1a1a2e', fontWeight: '600', textDecoration: 'none', border: '1px solid #ddd', padding: '7px 14px', borderRadius: '8px', whiteSpace: 'nowrap' }}>
               Exit
             </Link>
           </div>
