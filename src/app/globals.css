@@ -2017,7 +2017,11 @@ svg {
     color: #1a1a2e;
     display: flex;
     flex-direction: column;
-    align-items: center;/* ── Smart Loader ─────────────────────────────────────────── */
+    align-items: center;
+  }
+}
+
+/* ── Smart Loader ─────────────────────────────────────────── */
 .loader-wrapper {
   position: fixed;
   top: 0;
@@ -2110,7 +2114,8 @@ svg {
     margin-top: -40px !important;
   }
 }
-  }
+
+@media (max-width: 640px) {
   .profile-name-row {
     justify-content: center;
   }
