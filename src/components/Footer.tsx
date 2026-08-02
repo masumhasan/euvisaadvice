@@ -9,6 +9,7 @@ const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3005'
 const companyLinks = [
   { label: 'About Us', href: '/about-us' },
   { label: 'Our Team', href: '/our-team' },
+  { label: 'Imprint', href: '/imprint' },
   { label: 'Privacy Policy', href: '/privacy-policy' },
   { label: 'Terms of Service', href: '/terms-of-service' },
 ]
@@ -21,11 +22,24 @@ interface ServiceLink {
 
 export default function Footer() {
   const [serviceLinks, setServiceLinks] = useState<ServiceLink[]>([])
+  const [contactInfo, setContactInfo] = useState({
+    address: '30 N Gould St, Ste N\nSheridan, WY 82801 USA',
+    email: 'supporteuvisa@gmail.com',
+  })
 
   useEffect(() => {
     fetch(`${BACKEND}/api/services`)
       .then(r => r.json())
       .then(data => { if (Array.isArray(data.services)) setServiceLinks(data.services) })
+      .catch(() => {})
+
+    fetch(`${BACKEND}/api/pages/contact-info`)
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.address && data.email) {
+          setContactInfo({ address: data.address, email: data.email })
+        }
+      })
       .catch(() => {})
   }, [])
 
@@ -57,10 +71,10 @@ export default function Footer() {
           <h3 className="footer-col-title">Services</h3>
           <div className="footer-col-links">
             {serviceLinks.length > 0
-              ? serviceLinks.map(s => (
+               ? serviceLinks.map(s => (
                   <Link key={s.id} href={`/${s.slug}`}>{s.name}</Link>
                 ))
-              : (
+               : (
                 <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>No services yet</span>
               )
             }
@@ -77,20 +91,19 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Contact */}
+        {/* Imprint */}
         <div>
-          <h3 className="footer-col-title">Contact</h3>
+          <h3 className="footer-col-title">Imprint</h3>
           <div className="footer-contact-list">
             <div className="footer-contact-item">
               <MapPinIcon style={{ width: 17, height: 17, flexShrink: 0, marginTop: 2 }} />
-              <span>
-                30 N Gould St, Ste N<br />
-                Sheridan, WY 82801 USA
+              <span style={{ whiteSpace: 'pre-wrap' }}>
+                {contactInfo.address}
               </span>
             </div>
             <div className="footer-contact-item">
               <MailIcon style={{ width: 17, height: 17, flexShrink: 0 }} />
-              <a href="mailto:supporteuvisa@gmail.com">supporteuvisa@gmail.com</a>
+              <a href={`mailto:${contactInfo.email}`}>{contactInfo.email}</a>
             </div>
           </div>
         </div>

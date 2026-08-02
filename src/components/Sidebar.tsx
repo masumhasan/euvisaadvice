@@ -121,6 +121,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
   const policySubnav = [
     { label: 'Privacy Policy Manager', href: '/dashboard/policy/privacy' },
     { label: 'Terms Manager', href: '/dashboard/policy/terms' },
+    { label: 'Imprint Management', href: '/dashboard/policy/imprint' },
     { label: 'About Us Manager', href: '/dashboard/policy/about' },
     { label: 'Our Team Manager', href: '/dashboard/policy/team' },
     { label: 'How It Works Content', href: '/dashboard/policy/how-it-works' },
