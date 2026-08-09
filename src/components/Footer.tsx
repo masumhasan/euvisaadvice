@@ -91,9 +91,9 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Imprint */}
+        {/* Contacts */}
         <div>
-          <h3 className="footer-col-title">Imprint</h3>
+          <h3 className="footer-col-title">Contacts</h3>
           <div className="footer-contact-list">
             <div className="footer-contact-item">
               <MapPinIcon style={{ width: 17, height: 17, flexShrink: 0, marginTop: 2 }} />
