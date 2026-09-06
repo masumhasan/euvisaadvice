@@ -53,9 +53,11 @@ function Hero() {
             <Link href="/legalchat" className="btn-primary">
               Get Advice Now
             </Link>
+            {/* 
             <Link href="/client-chat" className="btn-outline">
               Existing Client Login
             </Link>
+            */}
           </div>
         </div>
 
