@@ -44,6 +44,20 @@ export default function AdminLoginPage() {
     setMounted(true)
   }, [])
 
+  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault()
+    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6).split('')
+    if (pastedData.length === 0) return
+    const next = [...otp]
+    pastedData.forEach((char, i) => {
+      if (i < 6) next[i] = char
+    })
+    setOtp(next)
+    const nextIndex = Math.min(pastedData.length, 5)
+    const nextInput = document.getElementById(`admin-otp-${nextIndex}`)
+    if (nextInput) (nextInput as HTMLInputElement).focus()
+  }
+
   const handleOtpInput = (index: number, val: string) => {
     if (val.length > 1) return
     const next = [...otp]
@@ -310,9 +324,10 @@ export default function AdminLoginPage() {
                       type="text"
                       maxLength={1}
                       className="signin-input"
-                      style={{ width: '44px', textAlign: 'center', fontWeight: 'bold' }}
+                      style={{ width: '44px', textAlign: 'center', fontWeight: 'bold', padding: 0 }}
                       value={d}
                       onChange={(e) => handleOtpInput(i, e.target.value)}
+                      onPaste={handleOtpPaste}
                     />
                   ))}
                 </div>
