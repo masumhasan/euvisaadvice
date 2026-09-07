@@ -132,6 +132,20 @@ export default function RegisterPage() {
     }
   }
 
+  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault()
+    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6).split('')
+    if (pastedData.length === 0) return
+    const newOtp = [...otp]
+    pastedData.forEach((char, i) => {
+      if (i < 6) newOtp[i] = char
+    })
+    setOtp(newOtp)
+    const nextIndex = Math.min(pastedData.length, 5)
+    const nextInput = document.getElementById(`otp-${nextIndex}`)
+    if (nextInput) (nextInput as HTMLInputElement).focus()
+  }
+
   const handleOtpInput = (index: number, val: string) => {
     if (val.length > 1) return
     const newOtp = [...otp]
@@ -290,7 +304,7 @@ export default function RegisterPage() {
               <form className="signin-form" onSubmit={handleVerifySubmit}>
                 <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '8px' }}>
                   {otp.map((d, i) => (
-                    <input key={i} id={`otp-${i}`} type="text" maxLength={1} className="signin-input" style={{ width: '44px', textAlign: 'center', fontWeight: 'bold' }} value={d} onChange={(e) => handleOtpInput(i, e.target.value)} />
+                    <input key={i} id={`otp-${i}`} type="text" maxLength={1} className="signin-input" style={{ width: '44px', textAlign: 'center', fontWeight: 'bold', padding: 0 }} value={d} onChange={(e) => handleOtpInput(i, e.target.value)} onPaste={handleOtpPaste} />
                   ))}
                 </div>
                 {error &&<p style={{ color: '#ff4d4d', fontSize: '14px', marginTop: '10px', textAlign: 'center' }}>{error}</p>}

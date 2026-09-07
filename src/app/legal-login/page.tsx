@@ -98,6 +98,20 @@ export default function LoginPage() {
     }
   }
 
+  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault()
+    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6).split('')
+    if (pastedData.length === 0) return
+    const newOtp = [...otp]
+    pastedData.forEach((char, i) => {
+      if (i < 6) newOtp[i] = char
+    })
+    setOtp(newOtp)
+    const nextIndex = Math.min(pastedData.length, 5)
+    const nextInput = document.getElementById(`otp-${nextIndex}`)
+    if (nextInput) (nextInput as HTMLInputElement).focus()
+  }
+
   const handleOtpInput = (index: number, val: string) => {
     if (val.length > 1) return
     const newOtp = [...otp]
@@ -373,9 +387,10 @@ export default function LoginPage() {
                       type="text"
                       maxLength={1}
                       className="signin-input"
-                      style={{ width: '44px', textAlign: 'center', fontWeight: 'bold' }}
+                      style={{ width: '44px', textAlign: 'center', fontWeight: 'bold', padding: 0 }}
                       value={d}
                       onChange={(e) => handleOtpInput(i, e.target.value)}
+                      onPaste={handleOtpPaste}
                     />
                   ))}
                 </div>
@@ -455,9 +470,10 @@ export default function LoginPage() {
                       type="text"
                       maxLength={1}
                       className="signin-input"
-                      style={{ width: '44px', textAlign: 'center', fontWeight: 'bold' }}
+                      style={{ width: '44px', textAlign: 'center', fontWeight: 'bold', padding: 0 }}
                       value={d}
                       onChange={(e) => handleOtpInput(i, e.target.value)}
+                      onPaste={handleOtpPaste}
                     />
                   ))}
                 </div>
