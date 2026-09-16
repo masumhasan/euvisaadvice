@@ -8,18 +8,8 @@ export default function SuccessPage() {
   const [countdown, setCountdown] = useState(5)
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer)
-          router.push('/client-chat')
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
-
-    return () => clearInterval(timer)
+    const params = window.location.search
+    router.replace(`/thank-you${params}`)
   }, [router])
 
   return (

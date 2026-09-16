@@ -50,19 +50,19 @@ const TIER_META: Record<string, { badge: string; accent: string; glow: string; f
     badge: 'Silver',
     accent: '#9ca3af',
     glow: 'rgba(156,163,175,0.18)',
-    features: ['Up to 3 consultations', 'AI legal assistant', 'Case status updates', 'Email thread analysis'],
+    features: ['Up to 3 questions about your immigration case', 'Direct online support', 'Case status updates', 'Email thread analysis'],
   },
   gold: {
     badge: 'Gold',
     accent: '#c9a84c',
     glow: 'rgba(201,168,76,0.18)',
-    features: ['Up to 10 consultations', 'Everything in Silver', 'Priority case tracking', 'Detailed event timeline'],
+    features: ['Up to 10 questions about your immigration case', 'Everything in Silver', 'Priority case tracking', 'Detailed event timeline'],
   },
   platinum: {
     badge: 'Platinum',
     accent: '#a78bfa',
     glow: 'rgba(167,139,250,0.18)',
-    features: ['Unlimited consultations', 'Everything in Gold', 'Direct attorney booking', 'Calendly appointment access'],
+    features: ['Unlimited conversations with our service', 'Everything in Gold', 'Direct attorney booking', 'Calendly appointment access'],
   },
 }
 
@@ -182,38 +182,13 @@ function SubscribePageInner() {
     const token = getToken()
     if (!token) { router.push('/legal-login'); return }
 
-    // Handle Stripe redirect back
+    // Forward Stripe redirect back to dedicated Thank You page
     const payment = searchParams.get('payment')
     if (payment === 'success') {
       const tier = searchParams.get('tier') ?? ''
       const sessionId = searchParams.get('session_id') ?? ''
-      setSuccessPlan(tier)
-
-      // Verify the completed checkout session with Stripe and update the user DB.
-      // Retry a few times to handle any brief Stripe propagation delay.
-      const verifyAndRedirect = async () => {
-        for (let i = 0; i < 6; i++) {
-          try {
-            const r = await fetch(`${BACKEND}/api/stripe/verify-session`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({ sessionId, tier }),
-            })
-            const d = await r.json()
-            if (d.synced) break
-            console.warn(`[Stripe] verify-session attempt ${i + 1}: synced=${d.synced} reason=${d.reason}`)
-          } catch (e) {
-            console.warn(`[Stripe] verify-session attempt ${i + 1} failed:`, e)
-          }
-          await new Promise(resolve => setTimeout(resolve, 1000))
-        }
-        router.push('/legalchat')
-      }
-
-      verifyAndRedirect()
+      router.replace(`/thank-you?session_id=${sessionId}&tier=${tier}`)
+      return
     }
 
     Promise.all([
@@ -302,7 +277,7 @@ function SubscribePageInner() {
             ? cancelAtPeriodEnd
               ? `Your ${TIER_META[currentPlan]?.badge ?? currentPlan} plan is scheduled to cancel at the end of the billing period.`
               : `You are on the ${TIER_META[currentPlan]?.badge ?? currentPlan} plan. Upgrade or manage your subscription below.`
-            : 'Select a subscription plan to start your legal consultation. Upgrade anytime as your needs grow.'}
+            : 'Select a subscription plan for your immigration case. Upgrade anytime as your needs grow.'}
         </p>
         {/* Manage subscription button for existing subscribers */}
         {currentPlan !== 'none' && subscriptionStatus === 'active' && (
@@ -437,7 +412,7 @@ function SubscribePageInner() {
               </div>
 
               {/* Description */}
-              <p style={{ color: '#9ca3af', fontSize: 14, lineHeight: 1.6, margin: '0 0 24px' }}>
+              <p style={{ color: '#9ca3af', fontSize: 14, lineHeight: 1.6, margin: '0 0 24px', whiteSpace: 'pre-line' }}>
                 {pkg.description}
               </p>
 
