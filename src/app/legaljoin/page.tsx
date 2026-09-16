@@ -73,7 +73,7 @@ function CheckIcon() {
 
 
 const features = [
-  'Expert legal consultation',
+  'Expert immigration case guidance',
   'Transparent fee structure',
   'Encrypted document vault',
 ]

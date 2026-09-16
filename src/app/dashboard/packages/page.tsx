@@ -182,7 +182,7 @@ export default function ChatbotPackagesPage() {
       <div className="pkg-header">
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: '500', color: '#1a1a2e', margin: 0 }}>Manage Packages</h2>
-          <p style={{ color: 'rgba(0,0,0,0.4)', fontSize: '14px', marginTop: '4px' }}>Create and update your chatbot pricing tiers.</p>
+          <p style={{ color: 'rgba(0,0,0,0.4)', fontSize: '14px', marginTop: '4px' }}>Create and update your subscription pricing tiers.</p>
         </div>
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           <button
@@ -277,9 +277,9 @@ export default function ChatbotPackagesPage() {
                 required
                 style={{ padding: '12px 16px', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.1)', fontSize: '15px', outline: 'none', color: '#000000', background: '#fff' }}
               >
-                <option value="silver">Silver — up to 3 conversations</option>
-                <option value="gold">Gold — up to 10 conversations</option>
-                <option value="platinum">Platinum — unlimited + booking</option>
+                <option value="silver">Silver — up to 3 case questions</option>
+                <option value="gold">Gold — up to 10 case questions</option>
+                <option value="platinum">Platinum — unlimited conversations + booking</option>
               </select>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -361,7 +361,7 @@ export default function ChatbotPackagesPage() {
               <div style={{ fontSize: '32px', fontWeight: '600', color: '#1a1a2e', marginBottom: '12px' }}>
                 €{pkg.price}
               </div>
-              <p style={{ color: 'rgba(0,0,0,0.5)', fontSize: '14px', lineHeight: '1.6', margin: 0, flex: 1 }}>
+              <p style={{ color: 'rgba(0,0,0,0.5)', fontSize: '14px', lineHeight: '1.6', margin: 0, flex: 1, whiteSpace: 'pre-line' }}>
                 {pkg.description}
               </p>
               <div style={{ marginTop: '24px', fontSize: '10px', color: 'rgba(0,0,0,0.3)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
