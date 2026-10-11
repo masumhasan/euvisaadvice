@@ -1,4 +1,4 @@
-# EUVisaAdvice – Next.js + Supabase
+# EUVisaAdvice – Next.js + Node
 
 An AI-powered EU visa advice platform built with **Next.js 16** (App Router, TypeScript, Tailwind CSS v4) and **Supabase** (database + auth).
 
