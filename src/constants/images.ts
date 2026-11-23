@@ -1,0 +1,33 @@
+/** Local copies of the image assets exported from the Stitch designs. */
+const base = "/images/stitch";
+
+export const IMAGES = {
+  courseFeatured: `${base}/i05e5595a.jpg`,
+  courseBlueCard: `${base}/ib6516c8e.jpg`,
+  courseChancenkarte: `${base}/i043a0c18.jpg`,
+  courseStudent: `${base}/i639bb3af.jpg`,
+  courseFamily: `${base}/ice85c114.jpg`,
+  courseSchengen: `${base}/i9f3e4336.jpg`,
+  courseRelocation: `${base}/i471cbf6e.jpg`,
+  videoThumb: `${base}/ie1463748.jpg`,
+  instructorAvatar: `${base}/i16e8e5fe.jpg`,
+  studioPlaybook: `${base}/ie19ad670.jpg`,
+  studioBlueCard: `${base}/i0425c39d.jpg`,
+  studioChancenkarte: `${base}/i84b9f9a7.jpg`,
+  studioNewCourse: `${base}/ibe06e97b.jpg`,
+  builderPoster: `${base}/i88f6f446.jpg`,
+  paymentCourse: `${base}/i540a0e7a.jpg`,
+  advisorAvatar: `${base}/i05fe094a.jpg`,
+  dashboardPreview: `${base}/i2f9316aa.png`,
+  uploadProcessing: `${base}/i27d97513.jpg`,
+  uploadTripartite: `${base}/ib068780c.jpg`,
+  uploadVfs: `${base}/i78c2d2c6.jpg`,
+  uploadZab: `${base}/i4c55ea91.jpg`,
+  avatarAlexander: `${base}/i6cebb738.jpg`,
+  avatarAlexanderLarge: `${base}/i4d3961fd.jpg`,
+  avatarPriya: `${base}/i0e4c3952.jpg`,
+  avatarCarlos: `${base}/i84922658.jpg`,
+  avatarFatima: `${base}/i15b77958.jpg`,
+  avatarDmitry: `${base}/i2efb6d57.jpg`,
+  uploadInspector: `${base}/iff3d8124.jpg`,
+} as const;

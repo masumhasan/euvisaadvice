@@ -1,4 +1,6 @@
-@import "tailwindcss";
+/* Preflight only: v1 styles are hand-written. The full import would start compiling its
+   inert utility classes (flex, lg:hidden...) once the academy needs PostCSS. */
+@import "tailwindcss/preflight.css" layer(base);
 
 @theme inline {
   --font-sans: var(--font-outfit);
