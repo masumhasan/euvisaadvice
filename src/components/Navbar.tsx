@@ -8,6 +8,7 @@ const navLinks = [
   { label: 'Services', href: '/services' },
   { label: 'How It Works', href: '/how-it-works' },
   { label: 'About', href: '/about-us' },
+  { label: 'Academy', href: '/courses' },
 ]
 
 export default function Navbar() {
